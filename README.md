@@ -15,7 +15,8 @@ An interactive machine learning teaching lab and web application for understandi
 │   ├── src/                                            # Components, Pyodide runner, UI
 │   ├── package.json
 │   └── vite.config.js
-├── Employee_Productivity_NumPy_Linear_Regression.ipynb # Step-by-step NumPy & ML notebook
+├── Employee_Productivity_NumPy_Linear_Regression.ipynb # Step-by-step NumPy & ML notebook with debug challenges
+├── DEBUG_CHALLENGES_ANSWER_KEY.md                      # Complete instructor/student answer key for debug challenges
 ├── employee_productivity_data.csv                      # Dataset for employee productivity metrics
 ├── models_overs_5_to_19.json                           # Pre-computed model checkpoints
 ├── *.docx / *.txt                                      # Lecture & curriculum notes
