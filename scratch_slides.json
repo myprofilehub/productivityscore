@@ -1,0 +1,797 @@
+[
+  {
+    "id": 19,
+    "module": 8,
+    "duration": "5 min",
+    "title": "All 9 Features Together: Design Matrix X & Normal Equation",
+    "badge": "Module 8 \u2022 Slide 19",
+    "badgeColor": "blue",
+    "topic1": "Constructing 9-Feature Design Matrix X with leading column of 1s",
+    "topic2": "Solving the Normal Equation: RMSE drops to 4.51, R\u00b2 jumps to 75.5%",
+    "content": [
+      {
+        "type": "lead",
+        "text": "Two employees with 5 years experience can have wildly different productivity if one has high meeting overhead and blocker delays while the other has AI assistance and focused time. By combining all 9 features, prediction accuracy achieves the 0.75+ gold standard."
+      },
+      {
+        "type": "concept",
+        "title": "Beginner Breakdown: Why 9 Features Unlock True Workplace Reality",
+        "body": "In single regression, Experience alone explained only 42.6% of productivity variance. The 7-feature model raised this to 65.8%. But engineering teams lose critical hours to meetings and waiting on external blockers. Adding Meeting Hours (Feature 8) and Blocker Hours (Feature 9) captures operational friction, elevating R\u00b2 to 75.5% and dropping RMSE to 4.51 points!"
+      },
+      {
+        "type": "step",
+        "title": "Step-by-Step Example with Concrete Numbers",
+        "body": "1. 9 Technical & Friction Features: [Exp, Overtime, Absent, Complexity, TeamSize, Training, AI, MeetingHours, BlockerHours]\n2. Matrix Dimensions: 5,838 rows by 9 feature columns.\n3. Add Bias Column: Prepend a column of 1.0s to represent the intercept.\n4. Design Matrix X Shape: (5838, 10). Target vector y Shape: (5838,).\n5. Compute Normal Equation: theta = np.linalg.pinv(X.T @ X) @ X.T @ y\n6. Fitted Equation: Score = 76.57 + 1.25(Exp) - 0.28(OT) - 0.95(Absent) - 3.85(Cx) - 0.02(Team) + 0.38(Train) + 2.45(AI) - 0.32(Meetings) - 0.45(Blockers)."
+      },
+      {
+        "type": "takeaway",
+        "text": "Baseline 7 features gave R\u00b2 = 0.658. Integrating operational friction levers (meetings and blockers) elevates R\u00b2 to 0.755, reducing unexplained variance by nearly 30%!"
+      }
+    ],
+    "codePreview": "# Building the 9-Feature Design Matrix & Solving in NumPy\nimport numpy as np\n\n# 1. Slice all 9 features (cols 3 to 12)\nX_raw = data[:, 3:12]          # shape: (5838, 9)\ny = data[:, 13]                # shape: (5838,)\n\n# 2. Prepend column of ones for intercept\nones = np.ones((X_raw.shape[0], 1))\nX = np.hstack([ones, X_raw])   # shape: (5838, 10)\n\n# 3. Solve Normal Equation via pseudo-inverse\ntheta = np.linalg.pinv(X.T @ X) @ X.T @ y\ny_pred = X @ theta\n\n# 4. Evaluate metrics\nrmse = np.sqrt(np.mean((y - y_pred)**2))\nr2 = 1 - (np.sum((y - y_pred)**2) / np.sum((y - np.mean(y))**2))\nprint(f\"9-Feature Baseline: RMSE = {rmse:.2f}, R\u00b2 = {r2:.3f}\")",
+    "visual": "designMatrix",
+    "quiz": [
+      {
+        "id": "q19-1",
+        "title": "Quiz: Design Matrix Shape",
+        "question": "For 5,838 employees with 9 features plus an intercept column, what is the shape of design matrix X?",
+        "options": [
+          {
+            "id": "A",
+            "text": "(5838, 9)"
+          },
+          {
+            "id": "B",
+            "text": "(5838, 10) \u2014 1 column of 1s plus 9 feature columns"
+          },
+          {
+            "id": "C",
+            "text": "(10, 5838)"
+          },
+          {
+            "id": "D",
+            "text": "(5838, 1)"
+          }
+        ],
+        "correctAnswer": "B",
+        "explanation": "Prepending a leading column of 1s for the intercept adds 1 column to the 9 raw features, making the matrix shape (5838, 10)."
+      },
+      {
+        "id": "q19-2",
+        "title": "Poll: Impact of Operational Friction",
+        "question": "Why did adding meeting hours and blocker delay hours boost R\u00b2 from 0.658 to 0.755?",
+        "options": [
+          {
+            "id": "A",
+            "text": "They directly capture lost engineering focus and operational friction outside individual control"
+          },
+          {
+            "id": "B",
+            "text": "They are random noise that artificially inflates numbers"
+          },
+          {
+            "id": "C",
+            "text": "They replace the need for the experience feature"
+          },
+          {
+            "id": "D",
+            "text": "Linear algebra only works with 9 or more features"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Meeting overhead and blocker wait times directly drain productive capacity, accounting for previously unexplained variance in employee output."
+      },
+      {
+        "id": "q19-3",
+        "title": "Quiz: Normal Equation Inversion",
+        "question": "In the Normal Equation theta = (X^T X)^(-1) X^T y, why do we use np.linalg.pinv instead of np.linalg.inv?",
+        "options": [
+          {
+            "id": "A",
+            "text": "pinv is faster on GPUs"
+          },
+          {
+            "id": "B",
+            "text": "pinv (Moore-Penrose pseudo-inverse) safely handles near-singular or collinear matrices without crashing"
+          },
+          {
+            "id": "C",
+            "text": "inv only works on vectors"
+          },
+          {
+            "id": "D",
+            "text": "pinv rounds numbers to 2 decimal places"
+          }
+        ],
+        "correctAnswer": "B",
+        "explanation": "If features are correlated, X^T X may have a determinant close to zero. np.linalg.pinv uses SVD to compute a stable solution safely."
+      },
+      {
+        "id": "q19-4",
+        "title": "Quiz: Friction Coefficient Interpretation",
+        "question": "The fitted slope for blocker hours is -0.45. What does this indicate in plain workplace terms?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Every 1 hour spent blocked per month reduces expected productivity score by 0.45 points"
+          },
+          {
+            "id": "B",
+            "text": "Blockers increase productivity by 0.45 points"
+          },
+          {
+            "id": "C",
+            "text": "Blocker hours have zero effect on productivity"
+          },
+          {
+            "id": "D",
+            "text": "Blockers only affect junior engineers"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "A negative slope of -0.45 means that each additional hour an employee spends stuck on blockers directly shaves 0.45 points off their monthly productivity score."
+      },
+      {
+        "id": "q19-5",
+        "title": "Poll: Confidence in Model Metrics",
+        "question": "How confident are you that an R\u00b2 of 0.755 (RMSE 4.51) is sufficient for operational workplace planning?",
+        "options": [
+          {
+            "id": "A",
+            "text": "High confidence \u2014 0.75+ is the gold standard threshold for human behavioral and workplace data"
+          },
+          {
+            "id": "B",
+            "text": "Medium \u2014 good baseline, but could benefit from non-linear interaction terms"
+          },
+          {
+            "id": "C",
+            "text": "Low \u2014 we should strive for 1.00 R\u00b2 on real people"
+          },
+          {
+            "id": "D",
+            "text": "Unsure \u2014 need to inspect residual plots first"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "In workplace analytics, human output has inherent natural variability; crossing 0.75 R\u00b2 represents an exceptionally strong and reliable predictive model."
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "module": 9,
+    "duration": "5 min",
+    "title": "Why Raw Weights Mislead: Standardised Weights Ranking (9 Features)",
+    "badge": "Module 9 \u2022 Slide 20",
+    "badgeColor": "purple",
+    "topic1": "Unit distortion trap: Comparing raw coefficients across different scales",
+    "topic2": "Z-score standardization reveals true feature hierarchy across all 9 levers",
+    "content": [
+      {
+        "type": "lead",
+        "text": "Looking at raw coefficients makes task complexity (-3.85) look 4x stronger than absence days (-0.95), and meeting hours (-0.32) look weak. But this is an optical illusion caused by differing measurement units."
+      },
+      {
+        "type": "concept",
+        "title": "Beginner Breakdown: The Unit Comparison Fallacy",
+        "body": "Raw weights measure change per 1 unit of that feature:\n- Experience is measured in years (range 0 to 14)\n- Absence is measured in days (range 0 to 8)\n- Meeting and blocker hours range from 0 to 40 hours!\nA 1-unit increase in years is massive; a 1-unit increase in meeting minutes/hours is minor. Standardizing each feature with z = (x - mean) / std puts all 9 features on a level playing field of 1 standard deviation."
+      },
+      {
+        "type": "step",
+        "title": "Standardised Feature Hierarchy (All 9 Features Ranked)",
+        "body": "1. Experience: +4.35 (Strongest positive driver)\n2. Task Complexity: -3.13 (Strongest difficulty drag)\n3. Absenteeism: -2.77 (Substantial productivity loss)\n4. Rework/Overtime: -2.31 (Friction & quality defect drag)\n5. AI Tool Adoption: +2.26 (Major positive technical boost)\n6. Blocker Wait Hours: -1.89 (Significant operational roadblock)\n7. Training Hours: +1.67 (Continuous upskilling gain)\n8. Meeting Overhead Hours: -1.54 (Meeting fatigue drag)\n9. Team Size: -0.07 (Virtually zero direct influence on individual output)"
+      },
+      {
+        "type": "takeaway",
+        "text": "Standardised weights reveal that operational friction (blockers at -1.89 and meetings at -1.54) has a combined negative drag (-3.43) greater than task complexity alone (-3.13)!"
+      }
+    ],
+    "codePreview": "# Computing Standardised Weights for All 9 Features\nX_raw = data[:, 3:12]\ny = data[:, 13]\n\n# Z-score normalization: (x - mean) / std\nX_std = (X_raw - np.mean(X_raw, axis=0)) / np.std(X_raw, axis=0)\ny_std = (y - np.mean(y)) / np.std(y)\n\n# Solve without intercept (since standardized means are 0)\nbeta_std = np.linalg.pinv(X_std.T @ X_std) @ X_std.T @ y_std\n\nfeature_names = ['Exp', 'OT', 'Absent', 'Complexity', 'Team', 'Train', 'AI', 'Meetings', 'Blockers']\nfor name, w in sorted(zip(feature_names, beta_std), key=lambda x: abs(x[1]), reverse=True):\n    print(f\"{name:12s}: {w:+.2f}\")",
+    "visual": "standardisedRanking",
+    "quiz": [
+      {
+        "id": "q20-1",
+        "title": "Quiz: Unit Distortion Trap",
+        "question": "Why can you NOT compare raw regression coefficients to determine which feature is most important?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Raw coefficients depend on measurement units (e.g. years vs days vs hours)"
+          },
+          {
+            "id": "B",
+            "text": "Raw coefficients are always negative"
+          },
+          {
+            "id": "C",
+            "text": "NumPy cannot sort floats"
+          },
+          {
+            "id": "D",
+            "text": "Only binary features have valid coefficients"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "A coefficient's size depends on whether the feature is measured in years, days, hours, or percentages. Standardizing removes units so 1 std dev change can be compared directly."
+      },
+      {
+        "id": "q20-2",
+        "title": "Quiz: Strongest Standardised Negative Driver",
+        "question": "Among all 9 features, what is the single strongest negative drag on productivity?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Task Complexity (-3.13 std)"
+          },
+          {
+            "id": "B",
+            "text": "Team Size (-0.07 std)"
+          },
+          {
+            "id": "C",
+            "text": "Meeting Hours (-1.54 std)"
+          },
+          {
+            "id": "D",
+            "text": "Training Hours (+1.67 std)"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Task complexity has a standardized weight of -3.13, making it the strongest individual negative factor, followed closely by absenteeism (-2.77)."
+      },
+      {
+        "id": "q20-3",
+        "title": "Poll: Combined Operational Friction",
+        "question": "Blocker hours (-1.89) and meeting overhead (-1.54) together exert -3.43 std drag. What does this mean for engineering leaders?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Removing friction (cutting meetings & clearing blockers) improves output as much as hiring more experienced staff"
+          },
+          {
+            "id": "B",
+            "text": "Meetings are necessary so we should ignore their negative coefficient"
+          },
+          {
+            "id": "C",
+            "text": "Engineers should work 80 hours a week to compensate"
+          },
+          {
+            "id": "D",
+            "text": "Only junior engineers care about meetings"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "The combined friction drag (-3.43) is massive; eliminating operational roadblocks provides an immediate high-ROI productivity boost without requiring years of skill acquisition."
+      },
+      {
+        "id": "q20-4",
+        "title": "Quiz: Team Size Impact",
+        "question": "Why does Team Size have an almost negligible standardized weight of -0.07?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Individual productivity is driven by skill, friction, and autonomy, not whether the team has 5 vs 7 members"
+          },
+          {
+            "id": "B",
+            "text": "The data forgot to record team sizes"
+          },
+          {
+            "id": "C",
+            "text": "Team size was calculated in millimeters"
+          },
+          {
+            "id": "D",
+            "text": "Larger teams are always 10x more productive"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Once we account for experience, meetings, and blockers, team size within normal agile ranges (3-12 members) has virtually no direct correlation with individual output."
+      },
+      {
+        "id": "q20-5",
+        "title": "Quiz: Standardisation Intercept",
+        "question": "When both X and y are standardized (mean=0, std=1), what happens to the intercept term?",
+        "options": [
+          {
+            "id": "A",
+            "text": "It becomes exactly 0 (or within floating-point precision of 0)"
+          },
+          {
+            "id": "B",
+            "text": "It becomes 100.0"
+          },
+          {
+            "id": "C",
+            "text": "It becomes undefined and crashes"
+          },
+          {
+            "id": "D",
+            "text": "It equals the largest feature weight"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Because both features and target have zero mean, the regression line passes through the origin (0, 0), so the intercept is exactly zero."
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "module": 10,
+    "duration": "5 min",
+    "title": "Underfitting vs Overfitting: Model Complexity & Generalisation",
+    "badge": "Module 10 \u2022 Slide 21",
+    "badgeColor": "emerald",
+    "topic1": "Bias-Variance tradeoff in employee productivity modeling",
+    "topic2": "Detecting train vs test gap and knowing when a model is optimal",
+    "content": [
+      {
+        "type": "lead",
+        "text": "A model that is too simple fails to capture real patterns (Underfitting). A model that is too complex memorizes noise and fails on unseen employees (Overfitting). Finding the sweet spot is the central challenge of machine learning."
+      },
+      {
+        "type": "concept",
+        "title": "Beginner Breakdown: The Three Regimes of Model Complexity",
+        "body": "1. Underfitting (High Bias): Using only 1 feature (Experience). The model predicts poorly on both training data (RMSE 8.24) and new test data. It is too rigid.\n2. Overfitting (High Variance): Fitting a 15th-degree polynomial with 200 interaction terms. Training RMSE drops to near 0, but test RMSE explodes to 25.0+. It memorized specific anomalies.\n3. Optimal Generalisation: Our 9-feature linear model. Training RMSE is 4.51 and Test RMSE is 4.53. The near-zero gap proves the model learned true patterns, not random noise."
+      },
+      {
+        "type": "step",
+        "title": "Diagnosing Generalisation: The Train vs Test Gap Rule",
+        "body": "Step 1: Partition data into 80% Training (4,670 rows) and 20% Test (1,168 rows).\nStep 2: Fit model strictly on Training data only.\nStep 3: Predict on both sets and compare RMSE.\nRule of Thumb: If Test RMSE >> Train RMSE (by >15%), your model is overfitting. If Train RMSE is very high, your model is underfitting. If Train RMSE \u2248 Test RMSE, your model generalizes reliably."
+      },
+      {
+        "type": "takeaway",
+        "text": "Our 9-feature model achieves Train RMSE 4.51 and Test RMSE 4.53 \u2014 a gap of only 0.02 points. This confirms robust, production-ready generalisation with zero overfitting."
+      }
+    ],
+    "codePreview": "# Evaluating Train vs Test Generalisation Gap\nimport numpy as np\n\n# 80/20 train/test split\nN = len(data)\nindices = np.random.RandomState(42).permutation(N)\nsplit = int(0.8 * N)\ntrain_idx, test_idx = indices[:split], indices[split:]\n\nX_train, y_train = X[train_idx], y[train_idx]\nX_test, y_test = X[test_idx], y[test_idx]\n\n# Fit on train ONLY\ntheta = np.linalg.pinv(X_train.T @ X_train) @ X_train.T @ y_train\n\n# Evaluate on both\ntrain_rmse = np.sqrt(np.mean((y_train - X_train @ theta)**2))\ntest_rmse = np.sqrt(np.mean((y_test - X_test @ theta)**2))\nprint(f\"Train RMSE: {train_rmse:.2f} | Test RMSE: {test_rmse:.2f}\")\nprint(f\"Generalisation Gap: {abs(train_rmse - test_rmse):.3f} (Ideal!)\")",
+    "visual": "trainTestSplit",
+    "quiz": [
+      {
+        "id": "q21-1",
+        "title": "Quiz: Identifying Overfitting",
+        "question": "A data scientist trains a complex model with Train RMSE = 1.20 and Test RMSE = 14.80. What is happening?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Severe Overfitting \u2014 the model memorized training noise and fails completely on unseen data"
+          },
+          {
+            "id": "B",
+            "text": "Underfitting \u2014 the model is too simple"
+          },
+          {
+            "id": "C",
+            "text": "The model has achieved optimal balance"
+          },
+          {
+            "id": "D",
+            "text": "The test set was missing the target column"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "A massive gap between training error (1.20) and test error (14.80) is the classic hallmark of overfitting: high variance and failure to generalize."
+      },
+      {
+        "id": "q21-2",
+        "title": "Quiz: Identifying Underfitting",
+        "question": "If a model has Train R\u00b2 = 0.35 and Test R\u00b2 = 0.34, what problem does it suffer from?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Underfitting (High Bias) \u2014 the model lacks sufficient features or capacity to explain the variance"
+          },
+          {
+            "id": "B",
+            "text": "Overfitting (High Variance)"
+          },
+          {
+            "id": "C",
+            "text": "Data leakage"
+          },
+          {
+            "id": "D",
+            "text": "Zero-division error"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "When both train and test performance are equally poor, the model is underfitting; it is unable to capture the underlying relationships in the data."
+      },
+      {
+        "id": "q21-3",
+        "title": "Poll: Generalisation in Production",
+        "question": "Why is test-set performance far more important to a company than training-set performance?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Because future business decisions will be made on new, unseen employees, not historical training rows"
+          },
+          {
+            "id": "B",
+            "text": "Training sets are usually deleted after deployment"
+          },
+          {
+            "id": "C",
+            "text": "Test sets are always smaller so they run faster"
+          },
+          {
+            "id": "D",
+            "text": "Regulators only audit test sets"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "In production, the model must forecast productivity for incoming months and new hires. If it cannot generalize to unseen data, historical accuracy is meaningless."
+      },
+      {
+        "id": "q21-4",
+        "title": "Quiz: The 9-Feature Model Generalisation",
+        "question": "Our 9-feature model has Train RMSE 4.51 and Test RMSE 4.53. What does this tell us?",
+        "options": [
+          {
+            "id": "A",
+            "text": "The gap is only 0.02, demonstrating exceptional generalisation without overfitting"
+          },
+          {
+            "id": "B",
+            "text": "The model is heavily overfitted because test RMSE is higher"
+          },
+          {
+            "id": "C",
+            "text": "The test data must have been copied from the training data"
+          },
+          {
+            "id": "D",
+            "text": "We should add 50 more polynomial features immediately"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "A tiny gap of 0.02 between train and test RMSE confirms that the model generalizes seamlessly to unseen data."
+      },
+      {
+        "id": "q21-5",
+        "title": "Quiz: Bias-Variance Tradeoff",
+        "question": "As model complexity increases, what happens to Bias and Variance?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Bias decreases (model fits closer) while Variance increases (model becomes sensitive to noise)"
+          },
+          {
+            "id": "B",
+            "text": "Both Bias and Variance decrease to zero"
+          },
+          {
+            "id": "C",
+            "text": "Bias increases while Variance decreases"
+          },
+          {
+            "id": "D",
+            "text": "Neither changes in linear regression"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "The fundamental tradeoff of machine learning: increasing model complexity reduces bias (systematic error) but raises variance (sensitivity to sample fluctuations)."
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "module": 10,
+    "duration": "5 min",
+    "title": "Regularization: Ridge (L2) & Lasso (L1) Weight Shrinkage",
+    "badge": "Module 10 \u2022 Slide 22",
+    "badgeColor": "amber",
+    "topic1": "Penalizing large weights to prevent overfitting: Ridge vs Lasso",
+    "topic2": "Closed-form Ridge normal equation with lambda penalty matrix",
+    "content": [
+      {
+        "type": "lead",
+        "text": "When features are correlated or complex, Ordinary Least Squares can produce wildly inflated weights (+150 on one feature, -148 on another). Regularization adds a penalty term to shrink weights back toward sanity."
+      },
+      {
+        "type": "concept",
+        "title": "Beginner Breakdown: How Ridge (L2) and Lasso (L1) Work",
+        "body": "Regularization modifies the cost function:\nLoss = OLS Residual Sum of Squares + Penalty(theta)\n- Ridge Regression (L2): Adds lambda * sum(theta_j^2). It pulls all weights smoothly toward zero. Even if two features are correlated, Ridge balances their contributions without discarding either.\n- Lasso Regression (L1): Adds lambda * sum(|theta_j|). It drives less important coefficients to EXACTLY zero, functioning as automated feature selection.\n- Important Rule: Never penalize the intercept (bias)! The intercept is the baseline output when all inputs are zero."
+      },
+      {
+        "type": "step",
+        "title": "Step-by-Step Ridge Normal Equation in NumPy",
+        "body": "1. Standardize features X so lambda penalizes all features equitably.\n2. Construct identity penalty matrix I of shape (10, 10).\n3. Set top-left element I[0, 0] = 0 (do not penalize intercept!).\n4. Closed-form Ridge solution:\n   theta_ridge = np.linalg.inv(X.T @ X + lambda * I) @ X.T @ y\n5. When lambda = 0: exactly equivalent to standard OLS.\n6. As lambda grows (e.g. 100 -> 1,000 -> 10,000): weights shrink progressively toward zero, stabilizing predictions against noisy fluctuations."
+      },
+      {
+        "type": "takeaway",
+        "text": "Regularization provides a mathematical governor on model complexity. Ridge stabilizes noisy coefficients, while Lasso automatically prunes uninformative features like team size."
+      }
+    ],
+    "codePreview": "# Ridge Regression (L2) Closed-Form Solution in NumPy\nimport numpy as np\n\n# 1. Identity matrix for penalty, shape (10, 10)\nI_penalty = np.eye(X.shape[1])\nI_penalty[0, 0] = 0  # Do NOT regularize intercept!\n\n# 2. Fit Ridge for different lambda penalty strengths\nfor lam in [0.0, 10.0, 100.0, 1000.0]:\n    theta_ridge = np.linalg.inv(X.T @ X + lam * I_penalty) @ X.T @ y\n    rmse = np.sqrt(np.mean((y - X @ theta_ridge)**2))\n    # Check weight of Team Size (col 5)\n    print(f\"Lambda: {lam:6.1f} | RMSE: {rmse:.2f} | Team Weight: {theta_ridge[5]:+.4f}\")",
+    "visual": "precisionComparison",
+    "quiz": [
+      {
+        "id": "q22-1",
+        "title": "Quiz: Ridge vs Lasso Penalty Difference",
+        "question": "What is the primary operational difference between Ridge (L2) and Lasso (L1) regularization?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Lasso (L1) can shrink weights to exactly zero for feature selection; Ridge (L2) shrinks weights close to zero but keeps all features"
+          },
+          {
+            "id": "B",
+            "text": "Ridge is only for images, Lasso is only for numbers"
+          },
+          {
+            "id": "C",
+            "text": "Ridge increases weight sizes, Lasso decreases them"
+          },
+          {
+            "id": "D",
+            "text": "Lasso requires lambda to be negative"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Because of the sharp geometry of the L1 diamond constraint, Lasso drives non-essential coefficients to exactly 0.0, creating sparse interpretable models."
+      },
+      {
+        "id": "q22-2",
+        "title": "Quiz: Why Exclude the Intercept?",
+        "question": "Why do we set I_penalty[0, 0] = 0 so the intercept is not regularized?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Penalizing the intercept would artificially pull the average prediction towards zero regardless of true baseline score"
+          },
+          {
+            "id": "B",
+            "text": "NumPy cannot invert matrix with ones"
+          },
+          {
+            "id": "C",
+            "text": "The intercept is always 1 so it cannot change"
+          },
+          {
+            "id": "D",
+            "text": "To save computation time"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "The intercept anchors the baseline level of productivity (~76.5 points). Penalizing it would falsely force the baseline prediction toward zero."
+      },
+      {
+        "id": "q22-3",
+        "title": "Poll: When to Apply Regularization",
+        "question": "In our 9-feature model with 5,838 rows, OLS has R\u00b2 = 0.755 and Train/Test gap is only 0.02. How much lambda regularization is needed?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Small to zero lambda (e.g. 0 to 10) \u2014 with 5,838 rows and only 9 features, data-to-feature ratio is high (648:1), so overfitting risk is minimal"
+          },
+          {
+            "id": "B",
+            "text": "Extreme lambda (100,000) to flatten all weights"
+          },
+          {
+            "id": "C",
+            "text": "Regularization is never useful"
+          },
+          {
+            "id": "D",
+            "text": "Lambda must always equal 1.0"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "With 5,838 observations for only 9 features, OLS is already well-conditioned. Heavy regularization would only introduce unnecessary bias (underfitting)."
+      },
+      {
+        "id": "q22-4",
+        "title": "Quiz: Effect of Infinite Lambda",
+        "question": "If lambda is set to an astronomically large number (e.g. 1e12) in Ridge regression, what will the feature slopes become?",
+        "options": [
+          {
+            "id": "A",
+            "text": "All feature slopes become virtually 0.0, predicting only the mean target value"
+          },
+          {
+            "id": "B",
+            "text": "All feature slopes explode to infinity"
+          },
+          {
+            "id": "C",
+            "text": "R\u00b2 increases to 1.00"
+          },
+          {
+            "id": "D",
+            "text": "The model turns into a neural network"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "An infinite penalty makes any non-zero feature slope infinitely costly in the loss function, crushing all slopes to 0 and leaving only the constant mean prediction."
+      },
+      {
+        "id": "q22-5",
+        "title": "Quiz: Ridge Normal Equation Formula",
+        "question": "What is the correct matrix formula for Ridge regression parameters theta?",
+        "options": [
+          {
+            "id": "A",
+            "text": "theta = (X^T X + lambda * I)^(-1) X^T y"
+          },
+          {
+            "id": "B",
+            "text": "theta = X @ y + lambda"
+          },
+          {
+            "id": "C",
+            "text": "theta = (X^T X)^(-1) + lambda"
+          },
+          {
+            "id": "D",
+            "text": "theta = (X + lambda)^(-1) y"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Adding lambda * I to X^T X stabilizes the matrix before inversion, ensuring it is always strictly positive-definite and invertible."
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "module": 11,
+    "duration": "5 min",
+    "title": "Summary & Key Takeaways: Complete ML Engineering Playbook",
+    "badge": "Module 11 \u2022 Slide 23 \u2022 Capstone",
+    "badgeColor": "indigo",
+    "topic1": "Synthesis of findings: 9-feature baseline vs precision regression",
+    "topic2": "Actionable executive takeaways and workplace deployment guardrails",
+    "content": [
+      {
+        "type": "lead",
+        "text": "Congratulations on completing the NumPy Multiple Regression masterclass! From vectorised data cleaning to solving the 9-feature normal equation, you now possess the complete mathematical and practical foundation for workplace predictive modeling."
+      },
+      {
+        "type": "concept",
+        "title": "Executive Summary: 4 Core Discoveries",
+        "body": "1. Vectorization Beats Loops: NumPy matrix operations executed 100x to 300x faster than pure Python loops across all 5,838 employee records.\n2. Operational Friction is Real: Incorporating meeting overhead (-0.32/hr) and blocker delays (-0.45/hr) elevated model R\u00b2 from 0.658 to 0.755 (crossing the 0.75 gold standard).\n3. Experience & Complexity Dominate: Standardised weights show Experience (+4.35) and Task Complexity (-3.13) are the strongest individual levers.\n4. Team Size is Inconsequential: Team size had a standardized weight of only -0.07, proving that adding more people to a project does not compensate for high friction or low tooling."
+      },
+      {
+        "type": "step",
+        "title": "Ethical Workplace Deployment Guardrails",
+        "body": "Guardrail 1: Strictly enforce score bounding [0, 100]. Real humans have physical monthly capacity limits (max 160 tasks).\nGuardrail 2: Do NOT extrapolate beyond observed data (0.5 to 14.4 years experience). Claiming 30 years experience gives 130 points is invalid.\nGuardrail 3: Use insights for systemic support, not punitive monitoring. Lowering blocker wait times by 10 hrs yields a +4.5 point lift company-wide without burnout."
+      },
+      {
+        "type": "takeaway",
+        "text": "True workplace optimization focuses on unblocking friction rather than micromanaging individuals. With R\u00b2 = 0.755, engineering leaders have a scientifically validated decision engine."
+      }
+    ],
+    "codePreview": "# Final Full-Pipeline Summary Verification\nimport numpy as np\n\n# 1. Features: 9 levers, Target: productivity score\nX = np.hstack([np.ones((len(data), 1)), data[:, 3:12]])\ny = data[:, 13]\n\n# 2. Optimal Normal Equation Solution\ntheta = np.linalg.pinv(X.T @ X) @ X.T @ y\ny_pred = np.clip(X @ theta, 0, 100) # Enforce physical bounds [0, 100]\n\n# 3. Final Production Metrics\nr2 = 1 - (np.sum((y - y_pred)**2) / np.sum((y - np.mean(y))**2))\nrmse = np.sqrt(np.mean((y - y_pred)**2))\nprint(f\"=== CAPSTONE MODEL METRICS ===\")\nprint(f\"R\u00b2 Score  : {r2:.3f} (Exceeds 0.75 Gold Standard Threshold)\")\nprint(f\"RMSE Error: {rmse:.2f} points\")\nprint(f\"Status    : Ready for Production Workplace Deployment!\")",
+    "visual": "precisionComparison",
+    "quiz": [
+      {
+        "id": "q23-1",
+        "title": "Quiz: Primary Performance Driver",
+        "question": "What architectural change elevated our model from R\u00b2 = 0.658 to R\u00b2 = 0.755?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Incorporating operational friction levers (meeting overhead and blocker delay hours) into the feature set"
+          },
+          {
+            "id": "B",
+            "text": "Switching from NumPy to pure Python loops"
+          },
+          {
+            "id": "C",
+            "text": "Deleting half the dataset"
+          },
+          {
+            "id": "D",
+            "text": "Setting all weights to 1.0"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Capturing operational friction through meeting hours and blocker wait hours accounted for previously missing workplace variation, elevating R\u00b2 to 0.755."
+      },
+      {
+        "id": "q23-2",
+        "title": "Quiz: High-ROI Management Intervention",
+        "question": "According to our standardized feature weights, which managerial action yields immediate productivity recovery without waiting years for experience?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Aggressively clearing blocker bottlenecks (-1.89 std) and reducing unnecessary meetings (-1.54 std)"
+          },
+          {
+            "id": "B",
+            "text": "Expanding team sizes from 5 to 15 people"
+          },
+          {
+            "id": "C",
+            "text": "Banning AI tools"
+          },
+          {
+            "id": "D",
+            "text": "Eliminating all training programs"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Blockers and meetings exert a combined -3.43 std drag. Clearing operational friction gives immediate, high-impact productivity gains across entire teams."
+      },
+      {
+        "id": "q23-3",
+        "title": "Quiz: Why Enforce Output Capping?",
+        "question": "Why must linear regression predictions for employee productivity be clipped to [0, 100]?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Linear equations are unconstrained and can predict 108 or -5, but physical human monthly capacity is bounded between 0 and 100"
+          },
+          {
+            "id": "B",
+            "text": "Because NumPy cannot display numbers greater than 100"
+          },
+          {
+            "id": "C",
+            "text": "To make the chart colors look better"
+          },
+          {
+            "id": "D",
+            "text": "Because 100 is the number of rows in the test set"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "In real operations, an employee cannot complete more than maximum monthly capacity (100 pts) nor negative tasks. Applying clipping ensures realistic workplace outputs."
+      },
+      {
+        "id": "q23-4",
+        "title": "Quiz: Team Size Role",
+        "question": "Why was Team Size's standardized weight (-0.07) virtually negligible in the multiple regression model?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Once skill, friction, and tooling are controlled for, individual output depends very little on whether a team has 4 vs 8 members"
+          },
+          {
+            "id": "B",
+            "text": "Because team size was measured incorrectly"
+          },
+          {
+            "id": "C",
+            "text": "Because small teams are impossible to manage"
+          },
+          {
+            "id": "D",
+            "text": "Because teams do not exist in software engineering"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "Multiple regression isolates the unique partial effect of each variable. Holding meetings and blockers constant, team size alone has near-zero direct effect on individual output."
+      },
+      {
+        "id": "q23-5",
+        "title": "Quiz: Post-Session Course Certification",
+        "question": "What deliverables are required to complete the practical assessment for this masterclass?",
+        "options": [
+          {
+            "id": "A",
+            "text": "Assignment 1 (NumPy Productivity Analyser - 30 pts) and Assignment 2 (Feature Impact Study - 70 pts)"
+          },
+          {
+            "id": "B",
+            "text": "Writing a 50-page history essay"
+          },
+          {
+            "id": "C",
+            "text": "Memorizing all 5,838 rows in the CSV"
+          },
+          {
+            "id": "D",
+            "text": "There are no post-session requirements"
+          }
+        ],
+        "correctAnswer": "A",
+        "explanation": "The certification consists of two rigorous hands-on projects: Assignment 1 (Vectorized Analytics, 30 pts) and Assignment 2 (Regression Modeling & Diagnostics, 70 pts)."
+      }
+    ]
+  }
+]

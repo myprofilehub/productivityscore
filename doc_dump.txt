@@ -1,0 +1,876 @@
+NumPy Basics and Complete Linear Regression
+Project: Does Predicting Later Improve the Projected T20 Score?
+Two-hour session for corporate fresher employees: facilitator guide with live-demo code, polls, quizzes and assignments. All data is real: 3,280 men's T20 international first innings from Cricsheet, tested with a time-based split at 2024.
+1. Session Overview
+1.1 Running project: the T20 score projector
+Every cricket broadcast shows a "projected score". The simplest version multiplies the current run rate by the overs remaining, but it ignores wickets lost and the fact that teams accelerate at the end. In this session participants build a better projector from real data and then use it to run a small, honest experiment. They first build the naive run-rate method with NumPy, then replace it with a linear regression fitted on 1,825 innings played up to 2023, and test it on 1,455 innings from 2024 to 2026 that the model never saw.
+The project asks three questions. Each is phrased as a hypothesis that the data can confirm or reject:
+Hypothesis
+Module
+Verdict
+H1. Predict later. The same model at 15 overs is more accurate than at 10 overs, because fewer unknown overs remain.
+9
+Confirmed. Test RMSE falls 37 percent, from 22.1 to 13.9 runs.
+H2. Stage by stage. Predicting the next checkpoint, then the next, then the final total beats one direct prediction.
+10
+Rejected. Chained and direct agree to within 0.05 runs when starting from over 6 or over 10.
+H3. Venue features. Some grounds are high scoring, so adding the venue improves the projection.
+10
+Rejected. Test error rises, so the venue features are removed.
+Facilitator note: do not reveal the verdicts early
+Before each experiment, ask participants to vote on the hypothesis. Most expect H2 and H3 to be true. The surprise is the lesson: a plausible idea has to earn its place by beating a baseline on data it was not fitted to.
+How every experiment is judged:
+Time-based split. Fit on innings from before 2024 (train), judge on innings from 2024 onward (test). A projector is used on future matches, so it is tested on future matches.
+A baseline. The run-rate method (current runs divided by overs bowled, times 20) is the number to beat.
+One metric in runs. Root mean squared error (RMSE) on the test set, reported with a bootstrap interval when two models are close.
+An ablation rule. A feature that does not improve test accuracy is removed.
+1.2 About the dataset
+The ball-by-ball records come from Cricsheet (cricsheet.org), a free open cricket data project, used under the Open Data Commons Attribution License 1.0. Credit Cricsheet on your slides and notebook (for example: "Data: Cricsheet.org, ODC-BY 1.0"). The facilitator prepares one small file before the session; participants load it with NumPy only.
+Column
+Meaning
+match_id
+Cricsheet identifier of the match
+year
+Calendar year in which the match was played (2005 to 2026)
+venue_id
+Number identifying the ground (0 to 333; names are in t20i_venues.csv)
+runs6, wkts6
+Runs scored and wickets lost after 6 overs (powerplay)
+runs10, wkts10
+Runs and wickets after 10 overs
+runs12, wkts12
+Runs and wickets after 12 overs
+runs15, wkts15
+Runs and wickets after 15 overs
+runs18, wkts18
+Runs and wickets after 18 overs
+final
+Final first-innings total (the value to predict)
+What was kept: the first innings of men's T20 internationals scheduled for 20 overs, provided the innings ran its full 20 overs or ended all out, and reached at least 15 overs. Chasing innings are excluded because a chasing team plays to a target, which is a different problem. What was dropped: 201 innings that were rain-shortened or incomplete, and 66 that ended all out before 15 overs (about 2 percent of complete innings). Dropping those 66 means every row has every checkpoint, so all models are compared on exactly the same innings. If a side was all out before over 18, its over-18 checkpoint is simply its final state. "After k overs" means after 6 x k legal deliveries; wides and no-balls do not count.
+Set
+Rule
+Innings
+Mean final score
+All data
+2005 to September 2026, 334 venues
+3,280
+152.7
+Train
+year < 2024
+1,825
+152.4
+Test
+year >= 2024
+1,455
+153.1
+The average score after 10 overs is about 71, final totals range from 26 to 344, and the correlation between runs after 10 overs and the final score is about 0.84. A property of this data to mention: T20 internationals include matches between full-member teams and associate nations, so team strength varies a lot from innings to innings, and most venues host only a handful of matches.
+1.3 Preparing the data before the session
+Download the men's T20 internationals CSV zip from cricsheet.org/downloads and unzip it.
+Run the preparation script: python prepare_t20i_dataset.py <folder> t20i_first_innings.csv. It also writes t20i_venues.csv. Confirm that the printed summary matches this guide: 3,280 innings kept, mean final 152.7, mean runs10 71.0, correlation 0.838, train 1,825 and test 1,455.
+Upload t20i_first_innings.csv to the shared Colab notebook (or place it next to the notebook). If you refresh the Cricsheet download later, the numbers in this guide will change slightly as new matches are added.
+1.4 Scope
+The session covers NumPy basics and the complete linear regression concept: the model, the loss function, the closed-form (normal equation) solution, gradient descent, multiple regression, feature scaling, evaluation metrics, model assumptions and diagnostics, multicollinearity, train/test evaluation with a time-based split, ablation tests (does a feature earn its place?), underfitting and overfitting, and ridge regularisation. Other model families (classification, trees, neural networks) are out of scope.
+1.5 Learning outcomes
+By the end of the session, participants will be able to:
+Create, inspect, index, slice and filter NumPy arrays, load a CSV file, and use vectorisation, axis operations, broadcasting and matrix multiplication.
+Explain how a regression line is fitted by minimising mean squared error, and derive predictions from slope and intercept.
+Implement simple and multiple linear regression from scratch with NumPy, using both the normal equation and gradient descent.
+Evaluate a model with MSE, RMSE, MAE, R-squared and adjusted R-squared, and compare it with a simple baseline.
+Design a fair experiment: split by time, compare against a baseline, test whether a difference is real with a bootstrap interval, and remove features that do not help.
+Check the assumptions of linear regression using residuals, detect outliers, drift over time and multicollinearity, and recognise underfitting and overfitting.
+Explain why a time-based split copies how a forecasting model is used, and how ridge regularisation stabilises a model.
+1.6 Prerequisites and setup
+Basic Python: variables, lists, loops and functions.
+Python 3.10 or later with NumPy and Matplotlib. Google Colab is recommended because it needs no installation.
+2. Duration Plan: Two Hours
+The plan below fills exactly 120 minutes: 34 minutes of NumPy and 71 minutes of regression, with a 5-minute break, a 5-minute introduction and a 5-minute wrap-up. Modules 9 and 10 are the project itself and are never cut. Two hours is tight for this scope, so the delivery rules in section 2.1 are essential.
+Module
+Topic
+Minutes
+1
+Introduction, setup and the three hypotheses
+5
+2
+NumPy arrays: creation, attributes, indexing, slicing, masks
+15
+3
+Vectorisation, aggregation and broadcasting
+12
+4
+Reshape, stacking, linear algebra and random numbers
+7
+-
+Break
+5
+5
+Regression concepts: the line, residuals, loss, closed form, train and test
+11
+6
+Simple regression live: baseline, fit, metrics, time split at 2024
+14
+7
+Gradient descent and the learning rate
+10
+8
+Multiple regression: design matrix, normal equation, scaling
+11
+9
+Experiment 1: does predicting later help? (H1)
+9
+10
+Experiments 2 and 3: stage by stage and venue features (H2, H3)
+9
+11
+Trust and generalisation: diagnostics, drift, multicollinearity, overfitting, ridge
+7
+12
+Wrap-up and assignment briefing
+5
+Total
+120
+2.1 Delivery rules for a two-hour session
+Share a ready notebook. Give participants a Colab notebook containing all the code blocks in this guide, together with t20i_first_innings.csv, before the session. They run cells and modify values; only the key lines are typed live. Do not wait for everyone to type.
+Keep polls to about one minute. At the marked points show the options and let participants vote by poll or chat. Run the winning option and show why the others fail. For H1, H2 and H3 the vote is on the result, before the code is run.
+Hold a time check at the end of Modules 4, 6 and 8. If you are more than 5 minutes behind, apply the cuts in section 2.2.
+Tiny arrays first. Modules 2 to 4 use six hand-typed innings (the first six rows of the dataset) so results can be checked by eye. The full dataset (3,280 innings) is used from Module 6.
+Never touch the test set while fitting. Say it out loud each time a model is fitted: "fit on train, report on test".
+2.2 What to cut if time runs short
+First: the ridge demo (13.6) and the polynomial overfitting demo (13.5); describe them using the tables of results.
+Second: the multicollinearity demo (13.4); show the correlation and the table only.
+Third: the speed comparison in Module 2, the random-number demo in Module 4, and the bootstrap code in Module 10 (show only the printed intervals).
+Do not cut Modules 9 and 10. The assignments are always completed after the session and are not part of the 120 minutes.
+3. Module 1: Introduction, Setup and the Hypotheses (5 min)
+Open with a live question: "A team is 80 for 2 after 10 overs. What will they score in 20?" Collect guesses in chat. Most people will say 2 x 80 = 160, or a little more. Then ask a second question: "Now suppose we wait until 15 overs. Would the typical error of our projection be about the same, 10 percent smaller, about 40 percent smaller, or half?" Write the guesses down; they are revisited in Module 9.
+Explain that by the end of the session the class will have built a model from 1,825 real T20 international innings, tested it on 1,455 later ones, and used it to test three ideas: predicting later (H1), predicting stage by stage (H2) and adding the venue (H3). Verify the setup:
+import numpy as np
+print(np.__version__)
+4. Module 2: NumPy Arrays (15 min)
+4.1 Why NumPy
+Python lists are flexible but slow for numerical work because every element is a separate Python object. A NumPy array stores numbers of one type in one block of memory and runs operations in compiled code. Almost every data and AI library is built on it.
+import time
+data = list(range(1_000_000))
+arr = np.arange(1_000_000)
+t = time.time(); [x * 2 for x in data]; print("list :", time.time() - t)
+t = time.time(); arr * 2; print("numpy:", time.time() - t)
+4.2 Creating arrays and checking attributes
+Six real T20 innings (the first six rows of the dataset, played in 2005 and 2006): runs after 10 overs, wickets lost after 10 overs, and the final 20-over score.
+runs10 = np.array([89, 93, 88, 92, 54, 83])
+wkts10 = np.array([4, 2, 1, 1, 4, 1])
+final  = np.array([214, 179, 133, 209, 126, 201])
+np.zeros((2, 3))        # 2 rows, 3 columns of 0.0
+np.ones(4)              # [1. 1. 1. 1.]
+np.arange(0, 10, 2)     # [0 2 4 6 8]
+np.linspace(0, 1, 5)    # 5 evenly spaced values from 0 to 1
+np.eye(3)               # 3 x 3 identity matrix
+matches = np.array([[89, 4, 214],
+                    [93, 2, 179],
+                    [88, 1, 133]])   # rows = innings, columns = measurements
+matches.ndim            # 2
+matches.shape           # (3, 3)  rows, columns
+matches.size            # 9
+matches.dtype           # int64   one data type for the whole array
+Key points: an array has a single dtype; shape is the most important attribute and the source of most errors; in data work, rows are samples (innings) and columns are measurements.
+Poll 1
+What is the shape of np.zeros((4, 3))?
+      A. (3, 4)
+      B. (4, 3)
+      C. (12,)
+      D. (4, 3, 1)
+Answer and discussion: B. The first number is rows, the second is columns.
+4.3 Indexing and slicing
+runs10[0]         # 89   first innings
+runs10[-1]        # 83   last innings
+runs10[1:4]       # [93 88 92]   start inclusive, stop exclusive
+runs10[::2]       # [89 88 54]   every second innings
+matches[:, 0]     # all rows, column 0 (runs after 10 overs)
+matches[2, 1]     # row 2, column 1 -> 1
+matches[1:3, :]   # rows 1 and 2, all columns
+Important: a slice is a view of the original data, not a copy. Changing the slice changes the original unless you call .copy().
+s = runs10[:3]
+s[0] = 999
+print(runs10[0])            # 999 - the original changed
+runs10[0] = 89              # restore it
+safe = runs10[:3].copy()    # independent copy
+4.4 Boolean masking
+A comparison on an array returns True and False values. Using that as an index keeps only the True positions. This replaces a for-loop containing an if-statement. The same idea will split the real data into train and test in Module 6.
+runs10 > 70                                    # [ T  T  T  T  F  T]
+final[runs10 > 70]                             # [214 179 133 209 201]
+good_start = (runs10 > 70) & (wkts10 <= 2)     # use & | ~ with brackets
+final[good_start]                              # [179 133 209 201]
+np.where(final >= 180, "big total", "par or below")
+Poll 2
+Which expression selects the final scores of innings with 60 to 90 runs after 10 overs?
+      A. final[runs10 > 60 and runs10 < 90]
+      B. final[(runs10 > 60) & (runs10 < 90)]
+      C. final[60 < runs10 < 90]
+      D. final[runs10.between(60, 90)]
+Answer and discussion: B (it returns 214, 133 and 201). Python's and/or do not work element by element on arrays, and chained comparisons also fail. NumPy needs & and | with brackets.
+5. Module 3: Vectorisation, Aggregation and Broadcasting (12 min)
+5.1 Vectorised operations
+Vectorisation means applying an operation to a whole array at once, with no explicit loop. Here is the naive projector from the opening question, for all six innings at once:
+run_rate = runs10 / 10          # runs per over, every innings
+naive = run_rate * 20           # run-rate projection
+error = final - naive
+print(naive)    # [178. 186. 176. 184. 108. 166.]
+print(error)    # [ 36.  -7. -43.  25.  18.  35.]
+Ask: "What do you notice about the errors?" Four of the six are positive: the run-rate method underestimates most of the time, because teams score faster in the second half. But not always: the third innings was 88 for 1 after 10 overs and still finished on 133, so the projection was 43 runs too high. Across all 3,280 innings the method underestimates 67 percent of the time, by 10.8 runs on average. A good model should learn the pattern from data and use wickets as well. This is the motivation for regression.
+5.2 Aggregation and the axis argument
+final.mean()               # 177.0   average final score
+final.std()                # 35.4    standard deviation
+final.argmax()             # 0       POSITION of the highest score
+np.median(final)           # 190.0
+np.cumsum(runs10)          # [ 89 182 270 362 416 499]   running total
+matches.mean(axis=0)       # one value per COLUMN: [ 90.    2.33 175.33]
+matches.mean(axis=1)       # one value per ROW:    [102.33  91.33  74.  ]
+Memory aid: axis=0 collapses the rows, axis=1 collapses the columns.
+5.3 Broadcasting
+Broadcasting lets NumPy combine arrays of different shapes. Compare the shapes from the right-hand side; two dimensions are compatible when they are equal or one of them is 1. A dimension of size 1 is stretched to match.
+matches - matches.mean(axis=0)     # (3, 3) - (3,): subtract each column's mean
+# Standardisation: needed later for gradient descent
+x_scaled = (runs10 - runs10.mean()) / runs10.std()
+print(x_scaled.round(2))           # [ 0.43  0.73  0.36  0.66 -2.17 -0.01]
+Common error: adding shapes (3,) and (4,) raises an error, because 3 and 4 are neither equal nor 1.
+Choose-the-next-line poll (Module 3)
+We want to standardise runs10 (mean 0, standard deviation 1). Which line should we type next?
+      A. z = runs10 - runs10.std() / runs10.mean()
+      B. z = (runs10 - runs10.mean()) / runs10.std()
+      C. z = runs10 / runs10.sum()
+Answer and discussion: B. Run all three. A and C do not centre and scale correctly. Link to broadcasting: the scalar mean and std are stretched across the whole array.
+6. Module 4: Reshape, Stacking, Linear Algebra and Random Numbers (7 min)
+a = np.arange(6)
+a.reshape(2, 3)                    # 2 rows, 3 columns
+a.reshape(-1, 1)                   # column vector; -1 means "work it out"
+a.reshape(2, 3).T                  # transpose -> shape (3, 2)
+np.column_stack([runs10, wkts10])  # features side by side, shape (6, 2)
+A = np.array([[1, 2], [3, 4]])
+v = np.array([5, 6])
+A * A                  # element-wise product
+A @ A                  # MATRIX product (rows times columns)
+A @ v                  # matrix times vector -> [17 39]
+np.linalg.solve(A, v)  # solves A x = v
+rng = np.random.default_rng(42)    # seed makes results repeatable
+rng.integers(45, 115, size=5)      # random integers from 45 to 114
+rng.normal(0, 8, size=5)           # bell-curve noise, mean 0, std 8
+rng.permutation(10)                # shuffled 0..9
+Stress two things: **the * operator is element-wise but @ is the matrix product** (regression depends on the second), and the seed lets everyone generate identical results. The same generator will be used later to resample the test set.
+Quiz 1
+What is the difference between A * B and A @ B for two 2D arrays?
+      A. No difference
+      B. * is element-wise, @ is matrix multiplication
+      C. * is matrix multiplication, @ is element-wise
+      D. @ only works on 1D arrays
+Answer and discussion: B. Mixing these up is the most common NumPy bug in regression code.
+Time check
+About 39 minutes should have passed (44 once the break is over).
+7. Module 5: Regression Concepts (11 min)
+7.1 The idea and the vocabulary
+Plot runs after 10 overs on the x-axis and the final score on the y-axis. The points trend upward. Linear regression finds the straight line that passes as close as possible to all points, and then uses that line to predict.
+y = m x + c, where m is the slope (extra final runs for each extra run at the 10-over mark) and c is the intercept (the line's value at x = 0, often just a mathematical anchor). With several features the model is y = c + w1 x1 + w2 x2 + .... It is called linear because it is linear in the parameters.
+Term
+Meaning
+In the project
+Feature (x)
+An input used to predict
+Runs and wickets after k overs
+Target (y)
+The value we want to predict
+Final 20-over score
+Parameters
+Numbers the model learns
+Slope(s) and intercept
+Residual
+Actual value minus predicted value
+Final score minus projected score
+Loss
+One number measuring how wrong the line is
+Mean squared error
+Train / test
+Data used to fit / data used only to judge
+Before 2024 / 2024 onward
+7.2 The loss function
+Residuals can be positive or negative and would cancel out, so we square them and take the average:
+MSE = (1/n) x sum of (y_actual - y_predicted)^2
+Squaring removes the sign and penalises large errors far more than small ones (a miss of 20 counts four times as much as a miss of 10). The line with the lowest MSE is the least squares line. Picture MSE as a bowl-shaped surface over all possible (m, c) pairs; training means finding the bottom of the bowl.
+7.3 Two ways to reach the bottom
+Closed form (normal equation): setting the slope of the bowl to zero gives direct formulas. For one feature: m = sum((x - mean_x)(y - mean_y)) / sum((x - mean_x)^2) and c = mean_y - m x mean_x. For many features: theta = inverse(X^T X) X^T y.
+Gradient descent: start with a guess, work out which direction is downhill, take a small step, repeat. The step size is the learning rate.
+The closed form is exact and quick for small problems. Gradient descent is used when the data is large or when the model has no closed form, which is why every learner should understand both.
+7.4 Fit on the past, judge on the future
+A model can always look good on the data it was fitted to. The honest question is how it does on innings it has never seen. Because a projector is used on future matches, we split by time: every innings played before 2024 is training data, and every innings from 2024 onward is test data. The test set is used only to report results, never to fit anything. This rule is used for every experiment in the session.
+Quiz 2
+A fitted line is y = 1.6 x + 39. What does the 1.6 tell us?
+      A. The intercept
+      B. Each extra run after 10 overs adds about 1.6 runs to the projected final score
+      C. The model's error
+      D. The number of innings
+Answer and discussion: B. It is the slope.
+8. Module 6: Simple Regression Live (14 min)
+8.1 Load the real data and split it
+data = np.loadtxt("t20i_first_innings.csv", delimiter=",", skiprows=1)
+(match_id, year, venue_id, runs6, wkts6, runs10, wkts10, runs12, wkts12,
+ runs15, wkts15, runs18, wkts18, final) = data.T
+n = len(final)
+print(data.shape)                  # (3280, 14)
+print(final.mean().round(1), runs10.mean().round(1))   # 152.7 and 71.0
+train = year < 2024                # fit on the past
+test  = year >= 2024               # judge on the future
+print(train.sum(), test.sum())     # 1825 1455
+print(final[train].mean().round(1), final[test].mean().round(1))   # 152.4 153.1
+This reuses Modules 2 to 4: shape, slicing columns with .T, boolean masks and aggregation. Optionally plot: plt.scatter(runs10[train], final[train]). Point out that real data is a cloud, not a clean line: the 56 innings that were exactly 70 after 10 overs finished anywhere between 104 and 198.
+8.2 The baseline, then the fit
+rmse = lambda a, b: np.sqrt(np.mean((a - b) ** 2))
+naive = runs10 * 2                                # run-rate projection
+print("Run-rate RMSE (test):", rmse(final[test], naive[test]).round(1))       # 24.7
+print("Average error (test):", np.mean(final[test] - naive[test]).round(1))   # +8.8
+print("Share underestimated:", np.mean(final[test] > naive[test]).round(2))   # 0.63
+print("Predict-the-mean RMSE:", rmse(final[test], final[train].mean()).round(1))  # 44.7
+x, y = runs10[train], final[train]                # fit on TRAIN only
+m = ((x - x.mean()) * (y - y.mean())).sum() / ((x - x.mean()) ** 2).sum()
+c = y.mean() - m * x.mean()
+print(m.round(2), c.round(1))                     # 1.62 and 39.1
+The run-rate method is wrong by about 25 runs typically, and on average 9 runs too low. That systematic error is exactly what regression can learn and correct. Predicting the average every time (44.7) is the weakest sensible baseline and shows how much information runs after 10 overs carry.
+8.3 Evaluation metrics: train and test
+def metrics(y, p):
+    mse = np.mean((y - p) ** 2)
+    rmse_ = np.sqrt(mse)                       # in runs; penalises big misses
+    mae = np.mean(np.abs(y - p))               # in runs; average miss
+    r2 = 1 - np.sum((y - p) ** 2) / np.sum((y - y.mean()) ** 2)
+    return rmse_.round(1), mae.round(1), r2.round(3)
+print(metrics(y, m * x + c))                                  # train: (22.1, 17.5, 0.651)
+print(metrics(final[test], m * runs10[test] + c))             # test : (22.6, 17.9, 0.745)
+Metric
+Meaning
+Notes
+MSE
+Average squared error
+The quantity being minimised; unit is runs squared
+RMSE
+Square root of MSE
+Typical error in runs; punishes large errors
+MAE
+Average absolute error
+Typical error in runs; less sensitive to outliers
+R-squared
+Share of the variation in y explained by the model
+1 is perfect; 0 is no better than predicting the mean
+Compare test RMSE with the run-rate method: 22.6 against 24.7. Test error is only slightly above training error (22.1), which is the healthy result. A trap to point out: R-squared is higher on the test set (0.745) than on the training set (0.651). That does not mean the model is better on the future. The 2024 to 2026 innings are simply more spread out (standard deviation 44.7 against 37.5), and R-squared is measured against that spread. Compare RMSE, which is in runs, across data sets, and use R-squared only within one data set.
+Choose-the-next-line poll (Module 6)
+The team is 80 for 2 after 10 overs. Which line gives the projected final score?
+      A. print(m * 80 + c)
+      B. print(m + 80 * c)
+      C. print(y_pred[80])
+Answer and discussion: A (about 168.6, against 160 from the run-rate method). B swaps slope and intercept. C reads the 81st prediction in the dataset, which has nothing to do with a score of 80. Compare with the guesses collected in Module 1.
+Time check
+About 69 minutes should have passed.
+9. Module 7: Gradient Descent and the Learning Rate (10 min)
+For each parameter, the gradient tells us how the loss changes as that parameter increases. For MSE with one feature, dm = 2 x mean(error x x) and dc = 2 x mean(error), where error = prediction - actual. We then move against the gradient: m = m - lr x dm. Standardise x first so that both parameters learn at a similar speed (this reuses broadcasting). Training data only:
+x_s = (x - x.mean()) / x.std()      # x, y are the TRAIN arrays from Module 6
+m_s, c_s = 0.0, 0.0
+lr = 0.1
+for epoch in range(200):
+    error = (m_s * x_s + c_s) - y
+    dm = 2 * np.mean(error * x_s)
+    dc = 2 * np.mean(error)
+    m_s -= lr * dm
+    c_s -= lr * dc
+    if epoch % 50 == 0:
+        print(epoch, np.mean(error ** 2).round(1))   # 24642.6, then 490.6 ...
+# convert back to the original units of x
+m_gd = m_s / x.std()
+c_gd = c_s - m_s * x.mean() / x.std()
+print(m_gd.round(2), c_gd.round(1))   # 1.62 and 39.1: matches the closed form
+Choose-the-next-line poll (Module 7)
+Inside the loop, how should the parameter be updated?
+      A. m_s += lr * dm
+      B. m_s -= lr * dm
+      C. m_s = dm
+Answer and discussion: B. The gradient points uphill, so we move against it. A climbs the bowl and the loss grows; C throws away the old value. Run each option for a few epochs and watch the printed loss.
+9.1 The learning rate experiment
+Rerun the loop with three values and ask participants to predict each outcome by poll before running. The best possible training MSE is about 490.6 (RMSE 22.1).
+Learning rate
+What happens (after 200 epochs)
+0.001
+Loss falls, but far too slowly: still about 11,378, nowhere near 490.6
+0.1
+Smooth convergence: the loss reaches 490.6 within the first 50 epochs and stays there
+1.5
+Each step overshoots the bottom; the loss grows without limit (above 10^34 by epoch 50) and the parameters blow up
+Also explain: epoch means one pass over all the data; convergence means the loss has stopped improving; stochastic and mini-batch gradient descent use a subset of the data per step for large datasets.
+10. Module 8: Multiple Regression (11 min)
+10.1 Design matrix and normal equation
+A team that is 80 for 1 is in a better position than one that is 80 for 5. Every innings becomes a row of the design matrix X, with a leading column of ones for the intercept. The parameters form a vector theta, and predictions are simply X @ theta. The parameters are fitted on the training rows only.
+X = np.column_stack([np.ones(n), runs10, wkts10])        # shape (3280, 3)
+Xtr, ytr = X[train], final[train]
+theta = np.linalg.solve(Xtr.T @ Xtr, Xtr.T @ ytr)        # normal equation
+theta2, *_ = np.linalg.lstsq(Xtr, ytr, rcond=None)       # same, numerically safer
+print(theta.round(2))                                    # [62.3   1.45 -4.52]
+pred = X @ theta                                         # predictions for every innings
+k = 2                                                    # number of features
+r2 = 1 - np.sum((ytr - pred[train]) ** 2) / np.sum((ytr - ytr.mean()) ** 2)
+adj_r2 = 1 - (1 - r2) * (len(ytr) - 1) / (len(ytr) - k - 1)
+print(rmse(ytr, pred[train]).round(1), r2.round(3), adj_r2.round(3))   # 21.5 0.673 0.672
+print(rmse(final[test], pred[test]).round(1))                          # 22.1 (test)
+print((theta @ np.array([1, 80, 2])).round(1))                         # 80 for 2: 169.6
+Interpret the weights in plain language: holding wickets fixed, each extra run at 10 overs adds about 1.45 to the final score; holding runs fixed, each wicket lost reduces it by about 4.5. Notice that the runs weight is smaller than the 1.62 of the simple model. Teams with more runs have usually lost fewer wickets, so the simple slope was also picking up part of the wicket effect. This is what "holding the other features fixed" means. Test RMSE improves from 22.6 to 22.1: a real but modest gain, because a T20 innings stays uncertain whatever features we use. Adjusted R-squared corrects R-squared for the number of features: plain R-squared never decreases when a feature is added, even a useless one, but adjusted R-squared can.
+10.2 Gradient descent in matrix form
+The same loop works for any number of features in three lines, because the gradient of MSE is (2/n) X^T (X theta - y). Features must be standardised, using the training mean and standard deviation.
+F = np.column_stack([runs10, wkts10])[train]
+mu, sd = F.mean(axis=0), F.std(axis=0)
+Xs = np.column_stack([np.ones(len(F)), (F - mu) / sd])
+theta_s = np.zeros(3)
+for epoch in range(300):
+    grad = (2 / len(F)) * Xs.T @ (Xs @ theta_s - ytr)
+    theta_s -= 0.1 * grad
+w = theta_s[1:] / sd                                  # back to original units
+b = theta_s[0] - np.sum(theta_s[1:] * mu / sd)
+print(b.round(2), w.round(2))                         # 62.3 and [ 1.45 -4.52]: matches
+10.3 Why scaling matters
+Gradient descent converges faster and more reliably when features share a similar scale (runs are around 71, wickets around 2.6).
+The normal equation does not need scaling, but scaled coefficients are in standard-deviation units and allow a fair comparison of feature importance.
+Always compute the mean and standard deviation on the training data only, then reuse them on new data.
+Quiz 3
+In X = np.column_stack([np.ones(n), runs10, wkts10]), why is there a column of ones?
+      A. To make the matrix square
+      B. To carry the intercept term
+      C. To standardise the data
+      D. It is optional decoration
+Answer and discussion: B. Multiplying the ones column by the first parameter produces the constant c.
+Time check
+About 90 minutes should have passed. The next two modules are the project: keep them whole.
+11. Module 9: Experiment 1, Does Predicting Later Help? (9 min)
+11.1 The hypothesis
+H1: the same model at 15 overs is more accurate than at 10 overs, because fewer unknown overs remain. Real broadcast projectors update every over for this reason. But nobody has measured it here, so we measure it. Return to the second question from Module 1 and show the guesses. Then run one poll before the code:
+Poll (Module 9)
+Compared with the RMSE of the over-10 model, the over-15 model's test RMSE will be:
+      A. About the same
+      B. About 10 percent lower
+      C. About 35 to 40 percent lower
+      D. More than 60 percent lower
+Answer and discussion: C. It is 37 percent lower (13.9 against 22.1). By over 18 it is 65 percent lower (7.8).
+11.2 One function, five checkpoints
+The same two-feature model (runs and wickets) is fitted at overs 6, 10, 12, 15 and 18, always on the training innings and always judged on the same 1,455 test innings. Two small helpers keep the code short and are reused in Module 10.
+runs = {6: runs6, 10: runs10, 12: runs12, 15: runs15, 18: runs18}
+wkts = {6: wkts6, 10: wkts10, 12: wkts12, 15: wkts15, 18: wkts18}
+def state(k):                        # (runs, wickets) after k overs, shape (3280, 2)
+    return np.column_stack([runs[k], wkts[k]])
+def fit(X, y):                       # least squares with an intercept
+    A = np.column_stack([np.ones(len(X)), X])
+    return np.linalg.lstsq(A, y, rcond=None)[0]
+def predict(theta, X):
+    return np.column_stack([np.ones(len(X)), X]) @ theta
+ft = final[test]
+direct = {}
+for k in [6, 10, 12, 15, 18]:
+    theta = fit(state(k)[train], final[train])
+    direct[k] = predict(theta, state(k)[test])
+    naive_k = runs[k][test] / k * 20                          # run-rate at this stage
+    print(k, rmse(ft, direct[k]).round(1), rmse(ft, naive_k).round(1), theta.round(2))
+11.3 Results
+After over
+Model RMSE
+Model MAE
+Model R-squared
+Run-rate RMSE
+6
+29.2
+22.9
+0.573
+33.6
+10
+22.1
+17.5
+0.756
+24.7
+12
+19.0
+14.9
+0.820
+21.3
+15
+13.9
+11.2
+0.904
+15.8
+18
+7.8
+6.2
+0.969
+8.7
+Test RMSE (innings from 2024 to 2026) by the over at which the projection is made.
+Finding: H1 is confirmed
+Waiting five more overs (10 to 15) cuts the typical error by 37 percent, from 22.1 to 13.9 runs; R-squared rises from 0.76 to 0.90. The model beats the run-rate method at every stage, and by over 15 its typical miss is 11 runs on average (MAE).
+Example: 125 for 4 after 15 overs projects to about 173.5 with the model, against 166.7 from the run-rate method.
+Why it works. After 15 overs only 5 overs are unknown. Most of the final total is already banked, so the uncertainty about the rest matters less. This is also visible in the weights:
+After over
+Intercept
+Weight on runs
+Weight on wickets
+6
+85.38
+1.74
+-5.05
+10
+62.30
+1.45
+-4.52
+12
+49.98
+1.36
+-4.00
+15
+35.40
+1.20
+-3.03
+18
+17.39
+1.07
+-1.58
+The weight on runs falls towards 1 (each run already scored stays in the total, and little is left to scale up), and a wicket costs fewer runs because fewer overs remain to be affected. The intercept shrinks for the same reason. Ask participants to explain these trends in their own words.
+Fairness checks to state aloud. All five models are judged on the same 1,455 innings. Test bias is small at every stage (the model projects 0.5 to 1.7 runs too high on average). The test innings were never used to fit anything.
+12. Module 10: Experiments 2 and 3, Stage by Stage and Venue Features (9 min)
+12.1 H2: does predicting stage by stage help?
+The idea sounds sensible: instead of jumping from over 6 to the final total, predict the state at over 10 (runs and wickets), then predict over 15 from that, and only then predict the final. Each step looks easier. Ask for a vote first:
+Poll (Module 10)
+Starting from over 6, the chained (stage by stage) projector's test RMSE compared with the direct model's will be:
+      A. Clearly better (more than 1 run lower)
+      B. The same, within a fraction of a run
+      C. Clearly worse (more than 1 run higher)
+Answer and discussion: B. They differ by less than 0.1 run. The explanation follows the results.
+Each stage model is fitted on training innings, using the true state at the current checkpoint to predict the next one. On the test set the predicted state is then fed forward, so errors can compound. Before running, define the bootstrap helper that tells us whether a difference between two models is real or noise:
+def boot_diff(err_a, err_b, B=2000, seed=0):
+    """95 percent interval for RMSE(a) - RMSE(b) over resampled test innings."""
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(err_a), size=(B, len(err_a)))   # B resamples
+    d = np.sqrt((err_a[idx] ** 2).mean(axis=1)) - np.sqrt((err_b[idx] ** 2).mean(axis=1))
+    return np.percentile(d, [2.5, 97.5]).round(2)
+def chained(path):
+    """Predict (runs, wickets) at each next checkpoint, then the final total."""
+    S = state(path[0])[test]
+    for a, b in zip(path[:-1], path[1:]):
+        th_r = fit(state(a)[train], runs[b][train])
+        th_w = fit(state(a)[train], wkts[b][train])
+        S = np.column_stack([predict(th_r, S), predict(th_w, S)])
+    th_f = fit(state(path[-1])[train], final[train])
+    return predict(th_f, S)
+for path in [[6, 10], [6, 10, 15], [6, 10, 12, 15, 18], [10, 15], [10, 12, 15, 18]]:
+    ch, dr = chained(path), direct[path[0]]
+    print(path, rmse(ft, ch).round(2), rmse(ft, dr).round(2),
+          boot_diff(ft - ch, ft - dr))
+Chain (then the final total)
+Chained RMSE
+Direct RMSE
+Difference
+95% interval
+6 → 10
+29.18
+29.22
+-0.05
+-0.12 to +0.02
+6 → 10 → 15
+29.19
+29.22
+-0.03
+-0.14 to +0.07
+6 → 10 → 12 → 15 → 18
+29.23
+29.22
+0.00
+-0.14 to +0.14
+10 → 15
+22.08
+22.08
+0.00
+-0.06 to +0.05
+10 → 12 → 15 → 18
+22.12
+22.08
++0.04
+-0.06 to +0.13
+Finding: H2 is rejected
+Every interval contains zero, so chaining neither helps nor hurts on this test set. Adding more stages only adds a little noise.
+Why. A chain of linear models is itself one linear model of the starting state: if next = a + B x state and final = c + d x next, then final = (c + d x a) + (d x B) x state. The direct regression finds the best linear function of the starting state on the training data, so the chain can at best tie it. The training RMSE shows the ceiling: from over 6, chained 26.98 against direct 26.94; from over 10 through 12, 15 and 18, chained 21.54 against direct 21.46. The improvement in H1 came from using later information, not from the stage-by-stage procedure.
+12.2 H3: do venue features help?
+Some grounds are high scoring, so adding the venue should help. Participants vote first; most say yes. The most natural encoding is one-hot: one 0/1 column per venue. With 334 venues in the data we keep the venues with at least 15 training innings (34 of them), and compare three models at overs 6, 10 and 15: no venue, venue columns with plain least squares, and venue columns with ridge regularisation.
+ids, counts = np.unique(venue_id[train], return_counts=True)
+top = ids[counts >= 15]                                          # 34 venues
+OH = np.column_stack([(venue_id == v).astype(float) for v in top])
+print(len(top), np.isin(venue_id[test], ids).mean().round(3))    # 34 and 0.554
+def fit_ridge(X, y, lam, free=3):
+    A = np.column_stack([np.ones(len(X)), X])
+    P = lam * np.eye(A.shape[1]); P[:free, :free] = 0     # do not penalise intercept, runs, wickets
+    return np.linalg.solve(A.T @ A + P, A.T @ y)
+rm = lambda e: np.sqrt(np.mean(e ** 2))
+for k in [6, 10, 15]:
+    S = state(k); X = np.column_stack([S, OH])
+    e0 = ft - predict(fit(S[train], final[train]), S[test])                 # no venue
+    e1 = ft - predict(fit(X[train], final[train]), X[test])                 # one-hot
+    e2 = ft - predict(fit_ridge(X[train], final[train], lam=50), X[test])   # ridge
+    print(k, rm(e0).round(2), rm(e1).round(2), rm(e2).round(2), boot_diff(e1, e0))
+After over
+No venue
+One-hot venues
+Ridge (lambda 50)
+One-hot minus none (95% interval)
+6
+29.22
+29.75
+29.31
++0.53 (+0.30 to +0.76)
+10
+22.08
+22.46
+22.15
++0.38 (+0.23 to +0.54)
+15
+13.89
+14.01
+13.91
++0.12 (+0.06 to +0.18)
+Finding: H3 is rejected, so the venue features are removed
+Test RMSE gets worse with venue columns at every stage, and the intervals exclude zero. Ridge pulls the error most of the way back, but never below the model without venue.
+This is overfitting in miniature. At over 10 the training RMSE falls from 21.46 to 21.00 when the venue columns are added, while the test RMSE rises from 22.08 to 22.46. The extra columns fit quirks of the training innings.
+Why venue does not help here. 334 venues share 3,280 innings, and 45 percent of the test innings are played at grounds that never appear in training; only 16 percent are at the 34 well-covered grounds. A ground's history also mixes eras and team strengths, so it says little about the next innings. The final model is just runs and wickets at the checkpoint.
+A fair-play check. We chose to drop the venue columns after looking at the test set, which is a small peek. To confirm the decision was not luck, repeat the comparison with a validation window taken from inside the training period: fit on innings up to 2021 and validate on 2022 and 2023.
+tr2 = year < 2022
+va = (year >= 2022) & (year < 2024)
+ids2, c2 = np.unique(venue_id[tr2], return_counts=True)
+OH2 = np.column_stack([(venue_id == v).astype(float) for v in ids2[c2 >= 15]])
+for k in [10, 15]:
+    S = state(k); X = np.column_stack([S, OH2])
+    a = rmse(final[va], predict(fit(S[tr2], final[tr2]), S[va]))
+    b = rmse(final[va], predict(fit(X[tr2], final[tr2]), X[va]))
+    print(k, a.round(2), b.round(2))     # 10: 22.71 vs 22.82    15: 14.53 vs 14.64
+The same direction appears on data the test set never touched. (A second form of the venue feature, the average score of each ground computed from training innings only, with each training innings left out of its own average, gives the same verdict: 22.25 against 22.08 at over 10 and 13.98 against 13.89 at over 15. It is an assignment extension.) Note the scope of this finding: it is about T20 internationals, where grounds change constantly. It does not say that venue never matters in a league that plays at the same few grounds every season.
+13. Module 11: Trust and Generalisation (7 min)
+13.1 Assumptions of linear regression
+Assumption
+Meaning
+How to check
+Linearity
+The relationship between features and target is roughly straight-line
+Residuals show no curve against predictions
+Independence and stability
+Errors are unrelated to each other and do not drift over time
+Average residual by period
+Constant variance
+Spread of the errors is similar for all predictions
+Compare residual spread for low and high predictions
+Normal residuals
+Errors are roughly bell-shaped around zero
+About 95 percent of residuals within 2 standard deviations
+No multicollinearity
+Features are not near-copies of each other
+Correlation between features; unstable or odd coefficients
+13.2 Residual checks in NumPy (test set, over-10 model)
+res = final[test] - pred[test]                 # residuals on innings the model never saw
+print(res.mean().round(2))                     # -1.74
+print(np.mean(np.abs(res) < 2 * res.std()).round(3))        # 0.96
+low = pred[test] < np.median(pred[test])       # boolean mask
+print(res[low].std().round(1), res[~low].std().round(1))   # 21.0 vs 22.7
+z = np.abs(res) / res.std()
+print(z.max().round(1), np.sum(z > 3))         # 3.8 and 8 innings
+Interpretation: residuals centre close to zero (the model projects 1.7 runs too high on average), 96 percent fall within 2 standard deviations, and the spread is similar for low and high predictions, so constant variance and approximate normality hold reasonably well. The 8 innings beyond 3 standard deviations are all extreme totals, such as 344 (the highest in the data, scored in 2024 after 151 for 3 at the halfway mark) and 258 from 86 for 3 in 2026. Investigate outliers before deciding whether to remove them, because squared errors let them pull the line hard. Optionally plot residuals against predictions: a healthy plot is a shapeless horizontal band.
+13.3 Is the data stable over time? Random split versus time split
+Real data has a timeline. Average the residuals of the model (fitted on the past) by period using boolean masks:
+res_all = final - pred          # residuals for every innings
+for lo, hi in [(2005, 2018), (2019, 2021), (2022, 2023), (2024, 2024), (2025, 2026)]:
+    era = (year >= lo) & (year <= hi)
+    print(lo, hi, era.sum(), res_all[era].mean().round(1))
+# 2005-2018: +0.6 (578)   2019-2021: -0.8 (521)   2022-2023: +0.1 (726)
+# 2024: -2.0 (566)        2025-2026: -1.6 (889)
+There is no real drift: the average residual stays within about 2 runs in every period, and the mean score is about 152 to 153 in both the training and test sets. Now compare a random 80/20 split with the time split:
+rng = np.random.default_rng(42)
+idx = rng.permutation(n)
+split = int(0.8 * n)
+tr, te = idx[:split], idx[split:]
+F = np.column_stack([runs10, wkts10])
+mu, sd = F[tr].mean(axis=0), F[tr].std(axis=0)              # from TRAIN only
+def design(rows):
+    return np.column_stack([np.ones(len(rows)), (F[rows] - mu) / sd])
+theta_r, *_ = np.linalg.lstsq(design(tr), final[tr], rcond=None)
+print(rmse(final[tr], design(tr) @ theta_r).round(1))       # train: 21.5
+print(rmse(final[te], design(te) @ theta_r).round(1))       # test : 22.2 (time split: 22.1)
+Lesson: report what you find, not what you expected
+In many sports datasets scoring trends upward and a random split quietly lets the model peek at the future. In this T20I data the two splits agree (22.2 and 22.1), because nothing drifts. We still use the time split because it copies how the projector will be used, and the era table is the evidence that it is safe. Always check for drift before deciding that it does not matter.
+13.4 Multicollinearity (cut-able)
+Powerplay runs (the first 6 overs) are part of the runs after 10 overs, so the two features are strongly related. Check how strongly, and what happens when both are used (training innings):
+a, b, c3 = runs10[train], runs6[train], wkts10[train]
+r = np.corrcoef(a, b)[0, 1]
+print(r.round(3), (1 / (1 - r ** 2)).round(1))              # 0.889 and 4.8 (the VIF)
+X3 = np.column_stack([np.ones(len(a)), a, b, c3])
+print(np.linalg.lstsq(X3, ytr, rcond=None)[0].round(2))     # [60.38  1.67 -0.32 -4.21]
+The variance inflation factor (VIF) is 1 / (1 - r squared) for a pair of features; a common rule of thumb treats values above 5 to 10 as a concern. Here it is about 4.8, which is moderate: the powerplay runs add almost nothing (weight -0.32; training R-squared moves only from 0.673 to 0.675) because runs10 already contains that information. Now the extreme case: add a feature that is exactly a combination of the others, runs in overs 7 to 10 (runs10 - runs6).
+X4 = np.column_stack([np.ones(len(a)), b, a, a - b, c3])
+print(np.linalg.matrix_rank(X4), X4.shape[1])                # 4 but 5 columns
+print(np.linalg.solve(X4.T @ X4, X4.T @ ytr).round(2))       # one set of weights
+print(np.linalg.lstsq(X4, ytr, rcond=None)[0].round(2))      # a different set
+# about [60.38  2.34 -0.99  2.66 -4.21] and [60.38  0.34  1.    0.66 -4.21]
+The rank shows that one column is redundant. Both weight sets give identical predictions, yet the individual weights disagree wildly, so they cannot be interpreted. (On some computers np.linalg.solve raises an error instead of returning numbers; your results may differ slightly.) Remedies: drop one of the redundant features, combine them, collect more varied data, or use ridge regularisation.
+13.5 Underfitting and overfitting (cut-able)
+Module 10 already showed a mild case: the venue columns lowered the training error and raised the test error. A sharper demo: fit polynomials of increasing degree on only 30 training innings, then test on the 1,455 test innings. A degree-d polynomial is still linear regression: its features are x, x squared, and so on up to x to the power d.
+rng2 = np.random.default_rng(2)
+small = rng2.permutation(np.where(train)[0])[:30]          # 30 training innings
+xs = (runs10 - runs10[train].mean()) / runs10[train].std()
+for d in [0, 1, 2, 5]:
+    co = np.polyfit(xs[small], final[small], d)
+    print(d, rmse(final[small], np.polyval(co, xs[small])).round(1),
+          rmse(final[test], np.polyval(co, xs[test])).round(1))
+Degree
+Train RMSE
+Test RMSE
+Verdict
+0 (flat line)
+38.8
+44.8
+Underfitting: too simple, bad everywhere
+1 (straight line)
+18.9
+23.5
+Good fit, small gap
+2
+18.8
+24.1
+No real gain over the straight line
+5
+16.0
+190.8
+Overfitting: chases noise, wild on new data
+Underfitting means high error on training data as well as test data. Overfitting means low training error but a much higher test error. A high-degree polynomial swings wildly outside the range of its 30 training points, which is why the test error explodes. These numbers come from one random draw; the pattern is typical (over 200 random draws, the median test RMSE was about 23 for degree 1 and about 324 for degree 5, with lower training error for degree 5). This is the bias-variance trade-off in practice: more flexibility lowers bias but raises variance.
+13.6 Ridge regularisation (cut-able)
+Ridge regression adds a penalty on the size of the weights: loss = MSE + lambda x sum of squared weights. It has a closed form that is a small change to the normal equation: theta = inverse(X^T X + lambda I) X^T y, leaving the intercept unpenalised. Features must be standardised.
+Z = np.column_stack([runs10, runs6, wkts10])
+zm, zs = Z[train].mean(axis=0), Z[train].std(axis=0)         # from TRAIN only
+A = np.column_stack([np.ones(n), (Z - zm) / zs])
+for lam in [0, 100, 1000]:
+    P = lam * np.eye(4); P[0, 0] = 0                         # do not penalise the intercept
+    th = np.linalg.solve(A[train].T @ A[train] + P, A[train].T @ final[train])
+    print(lam, th.round(2), rmse(final[test], A[test] @ th).round(2))
+# 0   : [152.43  31.13  -4.21  -5.86]  test 21.94
+# 100 : [152.43  24.32   1.42  -6.8 ]  test 22.45
+# 1000: [152.43  13.15   7.39  -6.8 ]  test 25.35
+Weights are now per standard deviation of each feature. As lambda grows, the weights shrink and the two related features (runs10 and runs6) share the credit instead of one cancelling the other. But look at the test column: accuracy gets worse as lambda grows. With 1,825 innings and three features the plain model is already stable, so ridge is not needed here. Its value appears when there are many columns or near-duplicates, as with the 34 venue columns in Module 10, where lambda 50 pulled the test error back from 22.46 to 22.15. Lambda is chosen by checking performance on held-back data. Lasso regression uses an absolute-value penalty and can drive weights exactly to zero; mention it by name only.
+Quiz 4
+Runs in overs 7 to 10 is added as a feature although runs10 and runs6 are already in the model. What is the problem?
+      A. Predictions become impossible
+      B. The new feature is a combination of existing ones, so individual weights become arbitrary
+      C. R-squared drops to zero
+      D. The intercept disappears
+Answer and discussion: B. The matrix is rank deficient. Predictions are still fine, but the weights cannot be interpreted.
+Quiz 5
+A model scores RMSE 5 on training data and 25 on test data. What is the most likely problem?
+      A. Underfitting
+      B. Overfitting
+      C. The features are standardised
+      D. The learning rate is too small
+Answer and discussion: B. Low training error with a much higher test error is the signature of overfitting.
+14. Module 12: Wrap-up (5 min)
+Return to the three hypotheses and ask each participant to state the verdict in one sentence. The one-line story of the session: the projector got better because it waited for more information, not because we made the procedure cleverer or added more columns.
+Topic
+Remember
+Array basics
+One dtype; shape is (rows, columns); slices are views; np.loadtxt reads a CSV
+Selection and speed
+arr[mask] with & and |; no loops; axis=0 collapses rows; broadcasting compares shapes from the right
+Matrices
+* is element-wise, @ is the matrix product; solve or lstsq for linear systems
+Model
+y = c + w1 x1 + ...; fit by minimising MSE
+Solving
+Normal equation for exact answers; gradient descent for scale (standardise, tune the learning rate)
+Evaluation
+RMSE and MAE in original units; R-squared only within one data set; always compare with a baseline
+Experiments
+Split by time; one metric; bootstrap interval for close calls; remove features that do not earn their place
+Predict later
+Same model, later checkpoint: RMSE 22.1 at over 10, 13.9 at over 15, 7.8 at over 18
+Trust
+Check residuals, outliers, drift over time and multicollinearity; overfitting is low train error with high test error
+14.1 Common mistakes to warn about
+Using Python and / or instead of & / | on arrays, and confusing * with @.
+Forgetting that slices change the original array.
+Forgetting the column of ones for the intercept.
+Not standardising before gradient descent, or computing the scaling on all data instead of the training data only.
+A learning rate that is too large while ignoring a rising loss.
+Fitting on the test set, or choosing features by repeatedly looking at test results. Keep a validation window for decisions and use the test set once.
+Comparing R-squared across different data sets instead of RMSE.
+Reading a small difference between two models as a real improvement without checking its interval.
+Extrapolating far outside the data (the model has only seen 12 to 171 runs after 10 overs and 8 to 113 after 6).
+Reading regression coefficients as proof of cause: they describe association in the data.
+14.2 Limits of this study to state honestly
+The data are T20 internationals only, first innings only. Chasing innings, other leagues and shortened matches are not covered.
+Innings that ended all out before 15 overs (66, about 2 percent) are excluded so that all checkpoints share the same rows.
+The test period runs from January 2024 to mid-September 2026. Results will move slightly when the data is refreshed.
+The venue conclusion applies to T20 internationals, where venues rarely repeat. It was confirmed on a validation window, but it is not a statement about leagues with a few fixed home grounds.
+Only linear models of runs and wickets were tested. Team strength, pitch, weather and the match situation are not in the data.
+15. Assignments (after the session)
+Both assignments use the same real file, t20i_first_innings.csv, and are submitted as a Jupyter or Colab notebook with code, printed outputs and a short written conclusion. They use only content from the session. A reference results table for the facilitator follows the assignments.
+Assignment 1 (NumPy): T20I Innings Analyser
+Scenario. A broadcaster wants a quick profile of 22 years of T20 international first innings. Analyse the file without Python for-loops over the rows (a loop over the list of years is allowed).
+Load the file with np.loadtxt. Print the shape and dtype, the first 3 rows, and unpack the columns into named arrays.
+Using boolean masks, compute the average final score for each year. Which year has the highest average and which the lowest? Repeat for only the years with at least 30 innings. Why do the answers differ?
+Count the innings with a final score of 200 or more, and compare their average wkts10 with the innings below 120.
+Use np.argsort to list the year, runs10, wkts10 and final of the 5 highest totals.
+Compute the run-rate projection (runs10 x 2) error for every innings, then its mean and RMSE for each of the four eras 2005 to 2018, 2019 to 2021, 2022 to 2023 and 2024 to 2026.
+Stack runs6, runs10 and final into a (3280, 3) matrix, standardise every column using broadcasting, and confirm that each column mean is close to 0 and each standard deviation close to 1.
+Compute the correlation matrix of runs6, wkts6, runs10, wkts10, runs15, wkts15 and final with np.corrcoef. Which pair of features (leaving out final) is the most strongly related, and what does that imply for a regression using both?
+Assignment 2 (Complete linear regression): The Projection Ladder
+Scenario. A broadcaster wants an early-warning projection after only 6 overs and asks how much better it becomes with every over that is bowled. Build the projector and judge it honestly, fitting on innings before 2024 and testing on innings from 2024 onward throughout.
+Write reusable functions fit_line(x, y), predict(x, m, c) and metrics(y, y_pred) returning MSE, RMSE, MAE and R-squared. Fit final on runs6 and compare it with the run-rate method (runs6 x 20 / 6) on the test set.
+Solve the same problem with gradient descent on standardised x, and show it reaches the same slope and intercept. Try two learning rates and describe what happens.
+Add wkts6 as a second feature. Solve with both the normal equation and lstsq, and report R-squared and adjusted R-squared.
+Repeat the two-feature model at overs 6, 10, 12, 15 and 18. Report test RMSE for each, draw the error against the over, and say by how much the error falls between over 6 and over 15.
+Add runs10 and wkts10 to the over-6 features (four features). How much does knowing four more overs add? Compare adjusted R-squared across the three models, and check the correlation between runs6 and runs10.
+Build the chained projector 6 to 10 to 15 to final. Compare it with the direct over-6 model using the bootstrap interval, and explain in three sentences why there is no gain.
+Test venue features at over 6 and over 15: one-hot venues (at least 15 training innings) with plain least squares and with ridge for two values of lambda. Decide whether to keep them. Stretch: build the venue-average feature, leaving each training innings out of its own venue's average, and test it.
+Check the assumptions for the over-15 model on the test set: residual mean, share of residuals within 2 standard deviations, residual spread for low versus high predictions, outliers beyond 3 standard deviations, and the average residual by era.
+Compare a random 80/20 split with the time split for the over-6 model. Report train and test RMSE for each and explain the difference, or the lack of one.
+Fit ridge regression on the four standardised features (runs6, wkts6, runs10, wkts10) for two values of lambda and describe what happens to the weights of runs6 and runs10.
+Write short answers: (a) what the runs6 slope means in cricket terms, (b) why R-squared is lower than for the 15-over model, (c) why the venue columns were dropped even though they lowered the training error, (d) what a large gap between train and test RMSE indicates, (e) why the model should not be trusted for a powerplay score of 125.
+Reference results for the facilitator
+These values come from the prepared file with 3,280 innings, trained on 1,825 innings before 2024 and tested on 1,455 from 2024 onward. They let you check participants' work and will shift slightly if you refresh the Cricsheet download.
+Model (fitted before 2024)
+Test RMSE
+Test R-squared
+Train adj. R-squared
+runs6 only
+29.4
+0.569
+0.465
+runs6 and wkts6
+29.2
+0.573
+0.483
+runs10 and wkts10 (Module 8)
+22.1
+0.756
+0.672
+runs6, wkts6, runs10, wkts10
+21.8
+0.762
+0.676
+Run-rate method from the powerplay (runs6 x 20 / 6): test RMSE 33.6, underestimating by 4.6 runs on average (56 percent of innings). From over 10 (runs10 x 2): 24.7, +8.8, 63 percent.
+runs6 only: weights [69.35, 1.93], reproduced by gradient descent (1.93 and 69.3). runs6 and wkts6: weights [85.38, 1.74, -5.05].
+Checkpoint models: test RMSE 29.2, 22.1, 19.0, 13.9 and 7.8 at overs 6, 10, 12, 15 and 18 (Module 9 table).
+Random 80/20 split (seed 42) for the over-6 model: train 27.6, test 28.7; time split: test 29.2. The two splits agree because the data does not drift.
+Over-15 model on the test set: mean residual -0.91, 95.7 percent of residuals within 2 standard deviations, 5 innings beyond 3 standard deviations (largest 3.9).
+Ridge on the four standardised features, weights in the order runs6, wkts6, runs10, wkts10: lambda 0 gives [-3.13, 2.64, 30.43, -7.80]; lambda 100 gives [2.06, 2.25, 24.06, -8.31]; lambda 1000 gives [7.22, -1.26, 13.04, -6.26] (intercept 152.43).
+Venue-average feature (leave-one-out, shrunk towards the overall mean with a weight of 10 innings): test RMSE 29.39 against 29.22 at over 6, 22.25 against 22.08 at over 10, 13.98 against 13.89 at over 15.
+Assignment 1: average final score by year ranges from 138.2 (2008, only 13 innings) to 175.3 (2005, only 3 innings) when every year is included; among years with at least 30 innings the highest is 2018 (173.1, 68 innings) and the lowest is 2021 (145.4, 270 innings). 388 innings reached 200 or more and 674 finished below 120; their average wkts10 is 1.58 and 3.80. The five highest totals are 344 (2024), 322 (2026), 314 (2023), 313 (2026) and 308 (2026).
+Assignment 1: run-rate error by era (mean, RMSE): 2005 to 2018 +12.2, 25.3; 2019 to 2021 +12.7, 27.5; 2022 to 2023 +12.4, 26.4; 2024 to 2026 +8.8, 24.7. Strongest feature pair: runs10 and runs15 (0.92), with runs6 and runs10 close behind (0.90). The correlation of final with runs15 is 0.94, with runs10 0.84 and with wkts10 -0.52.
+Suggested marking scheme
+Criterion
+Marks
+Correct, loop-free NumPy code
+35
+Correct regression, gradient descent and evaluation
+30
+Honest experiments: time split, baseline, intervals, keeping or dropping features, diagnostics
+20
+Written explanations and a clean, reproducible notebook
+15
+Total
+100
+16. Further Learning and Data Credit
+NumPy official quickstart and user guide (numpy.org/doc).
+Next topics after this session: pandas for tabular data, categorical features such as team or venue with one-hot encoding (tested here), logistic regression, cross-validation for time-ordered data, and bootstrap confidence intervals.
+Data credit: ball-by-ball data from Cricsheet (cricsheet.org), used under the Open Data Commons Attribution License 1.0.

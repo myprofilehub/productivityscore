@@ -1,0 +1,1201 @@
+NumPy Basics and Complete Linear Regression
+Project: Employee Productivity Score Predictor
+Which features affect the productivity of an employee? (simulated workplace data)
+Two-hour session for corporate fresher employees: beginner-friendly facilitator guide with live-demo code, polls, quizzes and assignments
+1. Session Overview
+1.1 What we build: the productivity score predictor
+A company wants to answer a simple question: what makes an employee more productive in a month? Is it years of experience? Training? Fewer tasks sent back for fixing? A new AI tool? Or does the size of the team matter? Everyone has an opinion, but opinions are not evidence. In this session we use data to find out.
+We build a productivity score predictor. We give it seven facts about an employee-month (these are called features), and it predicts one number: the productivity score. The score is based on the number of tasks the person completed and got accepted in that month, and it can never go above 100. A person who completes 160 tasks or more in a month (full capacity) gets the maximum score of 100. Section 1.3 shows the exact calculation.
+The tool has two jobs. Job 1 is to predict the score. Job 2 is more important: to tell us which features really affect the score, in which direction, and by how much. We build it in four steps:
+Step 1: the simple guess. Predict the team average for everyone. We do this with NumPy, and it becomes our baseline (the score we must beat).
+Step 2: one feature. Use linear regression with only experience and see how much it explains.
+Step 3: all seven features together. See how much better the prediction becomes.
+Step 4: which features matter? Rank the features, remove them one at a time, and check whether each effect is real or just luck. This is the main idea of the session.
+Along the way, participants learn the most useful lesson of the session: a feature that looks important on its own may matter less when the others are included, and some features that sound important (like team size) may have no effect at all.
+In simple words
+A model is a rule that turns what we know (the features) into a guess about what we want to know (the productivity score). Regression is one way to find that rule from data. Linear means the rule is built by multiplying each feature by a number and adding everything up.
+Read this first: the data is made up
+The employee data in this guide is simulated. A small program (prepare_productivity_data.py) creates it, and it always creates the same numbers, so every facilitator sees the same results.
+The patterns in it (more experience helps, rework and absence hurt, the AI assistant helps from month 13, team size does nothing) were put in on purpose. They are not facts about real employees.
+Tell participants this at the very start. Never present these results as truth about real teams. Section 16 explains how to use your own data instead.
+Use responsibly
+The participants are employees themselves, so be careful with this topic. Present the predictor as a tool to understand what helps people do well (for example, to see that training or a good tool lifts the score, or to notice that someone needs support). It is not a tool to rank people or judge their performance. Module 12 has a short discussion on this.
+1.2 About the data
+The file employee_productivity_data.csv has 250 employees followed for 24 months, so there are 6,000 rows. One row is one employee in one month. There are 12 columns: three ID columns, seven feature columns, the count of tasks completed, and the target column. The facilitator prepares the file before the session. Participants load it using only NumPy.
+Column
+What it means
+Type / range
+record_id, employee_id, month
+Row number, employee number (1 to 250) and month number (1 to 24). These only identify the row. They are not features.
+Whole numbers
+experience_years (feature 1)
+Years of work experience the person has in that month.
+Decimal; average 4.9, from 0.5 to 14.4
+training_hours (feature 2)
+Hours of training the person attended that month.
+Decimal; average 8.0, from 0.0 to 18.7. 162 cells are blank.
+task_complexity (feature 3)
+How difficult the person's tasks were on average (1 = very easy, 5 = very hard).
+Decimal; average 3.1, from 1.0 to 5.0
+ai_assistant (feature 4)
+Did the person use the AI assistant tool that month? 1 = yes, 0 = no.
+0 or 1 (a yes/no feature)
+rework_tickets (feature 5)
+How many of the person's finished tasks were sent back for fixing that month.
+Whole number; average 2.1, from 0 to 11
+absent_days (feature 6)
+Days the person was absent in the month (out of 20 working days).
+Whole number; average 1.0, from 0 to 6
+team_size (feature 7)
+Number of people in the person's team.
+Whole number; from 4 to 12
+tasks_completed
+Tasks completed and accepted in the month. It is only used to work out the score. Never use it as a feature, because it would give away the answer.
+Whole number; average 100, from 46 to 156
+productivity_score (target)
+Tasks completed divided by 160, times 100, capped at 100. This is what we predict.
+Decimal; average 62.4, from 28.8 to 97.5
+A few facts about the data. The average productivity score is about 62.4. The scores vary with a standard deviation of 9.1, which means a typical employee-month is about 9.1 tasks away from the average. Some people's training hours were not recorded, so 162 cells are blank. NumPy shows blanks as NaN (short for "not a number"). Participants learn to skip these rows using a boolean mask, a skill they will use in real jobs. After removing them, 5,838 complete rows are left.
+1.3 How the productivity score is calculated
+The score turns a count of tasks into a number from 0 to 100, so it is easy to read. The rule is:
+productivity score = (tasks completed / 160) x 100, and never more than 100
+Here 160 tasks in a month is called full capacity. It is a benchmark we chose, a little above the best month in the data. Reaching it earns the maximum score of 100.
+Tasks completed in the month
+Calculation
+Productivity score
+40
+40 / 160 x 100
+25
+80
+80 / 160 x 100
+50
+100
+100 / 160 x 100
+62.5
+120
+120 / 160 x 100
+75
+160
+160 / 160 x 100
+100 (full capacity)
+175
+175 / 160 x 100 = 109, but capped
+100 (cannot go higher)
+In simple words
+A cap is a ceiling: the score is not allowed to go above it. We use one so that the score always stays between 0 and 100, like a percentage. Because the cap is set above the best month in this data, no row actually hits it. The highest score in the file is 97.5.
+1.4 Preparing the data before the session
+Put prepare_productivity_data.py in a folder and run: python prepare_productivity_data.py. It creates employee_productivity_data.csv and prints "rows 6000 | missing training_hours: 162". If you see this, your file matches the guide.
+Check two numbers in Module 6: the average score is 62.4 and the average experience is 4.9 years (both after removing the blank rows).
+Upload employee_productivity_data.csv to the shared Colab notebook, or save it next to the notebook. If you change the seed or any setting in the script, the numbers in this guide will change.
+1.5 What is covered
+The session covers NumPy basics and the main ideas of linear regression. In plain terms, that means:
+how a model is described (a straight line, and a line with more than one input);
+how we measure mistakes (the loss function);
+two ways to find the best line (a direct formula, and step-by-step improvement called gradient descent);
+how to scale inputs, measure accuracy, and check that a model can be trusted;
+how to find which features really affect the outcome (standardised weights, drop-one test and a luck check);
+two common problems (a model that is too simple, and a model that is too complex), and a fix called ridge.
+Other kinds of models (such as classification, trees and neural networks) are not covered.
+1.6 What participants will be able to do
+Create and look inside NumPy arrays, pick parts of them, filter them, and load a CSV file that has blank cells.
+Explain how a line is fitted by making the average squared mistake as small as possible, and use slope and intercept to make predictions.
+Write simple and multiple linear regression from scratch with NumPy, using both the direct formula and gradient descent.
+Measure a model with MSE, RMSE, MAE and R-squared, and compare it with a simple baseline.
+Rank features by how much they affect the score, test each one by removing it, and say which effects are real and which may be luck.
+Check a model using residuals, spot outliers, drift and features that copy each other, and recognise underfitting and overfitting.
+Explain why a split by time is more honest than a random split when predicting the future, and what ridge does.
+Explain how a productivity analysis should and should not be used about real people.
+1.7 What participants need before the session
+Basic Python: variables, lists, loops and functions.
+Python 3.10 or newer with NumPy and Matplotlib. Google Colab is recommended because nothing needs to be installed.
+1.8 Words you will meet (a mini glossary)
+Share this table with participants. Every word here is also explained again, in simple language, when it first appears in the session. It is a good table to come back to.
+Word
+Simple meaning
+Feature
+One fact about a person that the model uses as an input (for example, years of experience). Think of it as one column of the table.
+Target
+The one thing we want to predict (the productivity score).
+Productivity score
+In this guide: tasks completed in a month divided by 160, times 100, with a maximum of 100.
+Cap
+A ceiling. A capped score can never go above the cap (here, 100).
+Model
+A rule that turns the features into a prediction.
+Prediction
+The number the model gives us.
+Array
+A NumPy list of numbers that is fast and can have rows and columns.
+Shape
+The size of an array written as (rows, columns). (5838, 7) means 5,838 rows and 7 columns.
+Index and slice
+Index = pick one item by its position. Slice = pick a range of items. Counting starts at 0.
+Mask
+A list of True and False values used to keep only the items you want.
+NaN
+"Not a number": how NumPy shows a blank or missing value.
+Mean, median
+Mean = the average. Median = the middle value when the numbers are sorted.
+Standard deviation
+How spread out the numbers are. A small value means most numbers are close to the average.
+Correlation
+A number from -1 to +1 showing how two columns move together. +1 means they rise together, -1 means one rises when the other falls, 0 means no link.
+Baseline
+A very simple guess that we try to beat (here: predict the average score for everyone).
+Slope, intercept
+The two numbers that describe a straight line: how steeply it rises, and where it starts.
+Weight
+The number the model multiplies a feature by. It tells how much the score changes when that feature goes up by 1.
+Residual
+The mistake: the real value minus the predicted value.
+MSE, RMSE, MAE
+Ways to measure the average mistake. RMSE and MAE are in score points, so they are easy to understand.
+R-squared
+A score from 0 to 1. Higher means the model explains more of the ups and downs in the data.
+Train and test
+Train data is used to build the model. Test data is kept aside to check it fairly.
+Standardise
+Rescale a column so its average is 0 and its spread is 1. This makes features with different units comparable.
+Gradient descent
+Finding the best line by taking small steps downhill, again and again.
+Learning rate
+The size of each step in gradient descent.
+Multicollinearity
+Two features that carry almost the same information, which confuses the weights.
+Outlier
+A row that is very far from the rest.
+Overfitting, underfitting
+Overfitting: the model memorises noise. Underfitting: the model is too simple to see the pattern.
+Ridge
+A small change to regression that keeps the weights from becoming too large.
+Bootstrap
+Re-doing the analysis many times on random re-draws of the data, to see how much the answer shakes just by chance.
+Seed
+A starting number that makes random numbers repeat, so everyone gets the same results.
+2. Duration Plan: Two Hours
+The plan fills exactly 120 minutes: about 39 minutes for the introduction and NumPy, and 76 minutes for regression and wrap-up, with a 5-minute break. Module 9 (which features affect productivity) is the most important part and must not be cut. Two hours is tight, so please follow the delivery rules in section 2.1.
+Module
+Topic
+Minutes
+1
+Introduction, setup and the project
+5
+2
+NumPy arrays: creating, looking inside, picking parts, filtering
+15
+3
+Doing maths on whole arrays, summaries and broadcasting
+12
+4
+Reshaping, joining, matrix maths and random numbers
+7
+-
+Break
+5
+5
+Regression ideas: the line, mistakes, loss, direct formula
+10
+6
+Simple regression live: one feature (experience), baseline, fit, scores
+13
+7
+Gradient descent and the learning rate
+10
+8
+All seven features together: design matrix, normal equation, scaling
+10
+9
+Which features affect productivity? Ranking, drop-one test, luck check, what-if
+15
+10
+Can we trust the model? Checks, outliers, features that copy each other
+6
+11
+Working on new data: train/test, too simple, too complex, ridge
+7
+12
+Wrap-up, using the results fairly, and the assignments
+5
+Total
+120
+2.1 Rules for delivering a two-hour session
+Share a ready notebook. Before the session, give participants a Colab notebook with all the code in this guide and the data file. They run the cells and change values. Only the key lines are typed live. Do not wait for everyone to type.
+Keep each poll to about one minute. At the marked points in Modules 3, 6, 7 and 9, show 3 options and let people vote in the poll or the chat. Run the winning option, then show why the others fail.
+Check the time at the end of Modules 4, 6, 8 and 9. If you are more than 5 minutes late, use the cuts in section 2.2.
+Use tiny examples first. Modules 2 to 4 use only six hand-typed records, so everyone can check the answers by eye. The full data starts in Module 6.
+Say it simply first. For every new idea, say it in one plain sentence before showing code or formulas. The "In simple words" boxes are there to help with this. If a participant looks lost, stop and explain the word again.
+2.2 What to cut if time runs short
+First: the ridge demo in Module 11 (show only the formula).
+Second: the overfitting demo with polynomials in Module 11 (describe it using the results table).
+Third: the speed test in Module 2 and the random-number demo in Module 4.
+Fourth: the duplicate-feature demo at the end of Module 10 (keep the VIF check).
+Do not cut Module 9. If you must save time there, skip the luck check (section 11.4) and show only the ranking table and the what-if table.
+The assignments are done after the session. They are not part of the 120 minutes.
+3. Module 1: Introduction, Setup and the Project (5 min)
+Start by saying two things: the data is made up, and the goal is to understand what helps people do well, not to rank people.
+Then run a one-minute poll and keep the votes. We will come back to them in Module 9.
+Opening poll (keep the result!)
+Out of these seven features, which one do you think affects the productivity score the most?
+A. experience_years
+B. training_hours
+C. rework_tickets
+D. team_size
+E. ai_assistant
+Answer and discussion: Do not give the answer now. Write down the votes. In Module 9 we will see what the data says.
+Then ask two questions and collect guesses in the chat:
+"A person has 6 years of experience, attended 10 training hours, has medium-difficulty tasks (3), uses the AI assistant, had 2 tasks sent back, was absent 1 day, and is in a team of 8. What score will they get?" (The finished predictor says about 71.)
+"Another person has 2 years of experience, 4 training hours, harder tasks (4), no AI assistant, 5 tasks sent back, 3 days absent, and a team of 6. What score?" (The finished predictor says about 40.)
+Tell them: by the end of the session we will have a predictor built from 5,838 records that answers both questions, and we will know which of the seven features carry the most weight.
+Now check that NumPy works:
+import numpy as np
+print(np.__version__)
+In simple words
+NumPy (short for "Numerical Python") is a Python library, a toolbox of ready-made code, for working with lots of numbers quickly. To "import" it means to bring the toolbox into our program. We write np as a short nickname for it.
+4. Module 2: NumPy Arrays (15 min)
+4.1 Why we use NumPy
+A normal Python list can hold anything, but it is slow for maths because each item is stored separately. A NumPy array holds numbers of one type together in one block of memory, so it can do maths on millions of numbers very fast. Almost every data and AI library is built on NumPy.
+In simple words
+NumPy = a fast way to work with lots of numbers. We will use it for everything in this session.
+import time
+data = list(range(1_000_000))
+arr = np.arange(1_000_000)
+t = time.time(); [x * 2 for x in data]; print("list :", time.time() - t)
+t = time.time(); arr * 2; print("numpy:", time.time() - t)
+4.2 Creating arrays and checking their properties
+Here are six real rows from the data (the first six employee-months). For each one we have: years of experience, tasks sent back for rework, days absent, and the productivity score.
+exp6    = np.array([4, 3.4, 3, 4.1, 2.9, 5.3])    # experience_years
+rework6 = np.array([3, 5, 5, 0, 1, 4])    # rework_tickets
+absent6 = np.array([1, 1, 1, 1, 0, 1])    # absent_days
+score6  = np.array([56.9, 50.6, 67.5, 65, 70, 56.2])    # productivity_score
+ 
+np.zeros((2, 3))        # 2 rows, 3 columns of 0.0
+np.ones(4)              # [1. 1. 1. 1.]
+np.arange(0, 10, 2)     # [0 2 4 6 8]
+np.linspace(0, 1, 5)    # 5 evenly spaced values from 0 to 1
+np.eye(3)               # 3 x 3 identity matrix
+ 
+records = np.array([[4, 3, 56.9],
+                    [3.4, 5, 50.6],
+                    [3, 5, 67.5]])   # rows = employee-months, columns = measurements
+ 
+records.ndim     # 2
+records.shape    # (3, 3)  rows, columns
+records.size     # 9
+records.dtype    # float64  one data type for the whole array
+Key points: an array holds one type of number. The shape tells you the number of rows and columns, and it is the most important property (most beginner errors are shape errors). ndim is the number of directions (1 for a simple list, 2 for a table). dtype is the type of number stored. In data work, each row is one record (here, one employee-month) and each column is one measurement.
+Poll 1
+What is the shape of np.zeros((4, 3))?
+A. (3, 4)
+B. (4, 3)
+C. (12,)
+D. (4, 3, 1)
+Answer and discussion: B. The first number is rows and the second is columns. So 4 rows and 3 columns.
+4.3 Picking items: indexing and slicing
+Indexing means picking one item by its position. Slicing means picking a range. Positions start at 0, not 1.
+exp6[0]        # 4   first record
+exp6[-1]       # 5.3   last record
+exp6[1:4]      # [3.4, 3, 4.1]   start inclusive, stop exclusive
+exp6[::2]      # [4, 3, 2.9]   every second record
+records[:, 0]  # all rows, column 0 (experience)
+records[2, 1]  # row 2, column 1
+records[1:3, :]# rows 1 and 2, all columns
+Important: a slice is only a window onto the original data. It is not a separate copy. If you change the slice, the original changes too. Use .copy() when you want a separate copy.
+s = exp6[:3]
+s[0] = 999
+print(exp6[0])        # 999  - the original changed
+exp6[0] = 4         # restore it
+safe = exp6[:3].copy()   # independent copy
+4.4 Filtering with a boolean mask
+A comparison such as exp6 > 3 gives a list of True and False values, one for each item. This list is called a boolean mask. If you use it to pick items, you keep only the True ones. This does the job of a for-loop with an if-statement, in one short line.
+This matters a lot in our project. Some people's training hours were not recorded, so those cells are blank (NaN). A mask is how we skip them.
+exp6 > 3                          # [True, True, False, True, False, True]
+score6[exp6 > 3]                  # [56.9, 50.6, 65, 56.2]  scores of people with more than 3 years
+good = (exp6 > 3) & (rework6 <= 3)   # use & | ~ with brackets
+score6[good]                      # [56.9, 65]
+np.where(score6 >= 60, "strong month", "weaker month")
+ 
+values = np.array([88.0, np.nan, 91.0])   # NaN = a missing value
+np.isnan(values)                  # [False  True False]
+values[~np.isnan(values)]         # [88. 91.]  real numbers only
+In simple words
+A mask is a list of True and False. Put it inside the square brackets, and NumPy keeps only the items where it says True. The sign ~ means "not", so ~np.isnan(values) means "the ones that are not blank".
+Poll 2
+Which line picks the scores of records with more than 3 and fewer than 5 years of experience?
+A. score6[exp6 > 3 and exp6 < 5]
+B. score6[(exp6 > 3) & (exp6 < 5)]
+C. score6[3 < exp6 < 5]
+D. score6[exp6.between(3, 5)]
+Answer and discussion: B (it gives [56.9, 50.6, 65]). Python's words "and" and "or" do not work item by item on arrays, and chained comparisons also fail. With NumPy, use & and | and put each condition in brackets.
+5. Module 3: Maths on Whole Arrays, Summaries and Broadcasting (12 min)
+5.1 Doing maths on a whole array at once (vectorisation)
+With NumPy you can do maths on a whole array in one line, with no loop. This is called vectorisation. Here is our simple guess ("predict the average score for everyone") worked out for all six records at once. The error of a guess is the real value minus the guess.
+avg = score6.mean()            # 61.0  the average score of these six
+guess = np.full(6, avg)        # the same guess for everyone
+error = score6 - guess         # [-4.1, -10.4, 6.5, 4, 9, -4.8]
+gap = 100 - score6             # [43.1, 49.4, 32.5, 35, 30, 43.8]  distance from the maximum score of 100
+Ask the class: "What do you notice about the mistakes?" They are fairly big, and they go in both directions: one person is 10 points below the guess and another is 9 above. A guess that ignores everything about the person cannot do better.
+Across all 5,838 records, this simple guess is wrong by about 9.1 points (RMSE, explained in Module 6). This is our baseline. Any model that cannot do better than this is not worth using. It is also a good moment to say: a small sample can fool you. Six rows told us very little about the whole file.
+5.2 Summaries and the axis argument
+score6.mean()      # average
+score6.std()       # standard deviation: 6.9
+score6.argmax()    # POSITION of the highest score: 4
+np.median(score6)  # middle value: 60.95
+np.cumsum(score6)  # running total
+ 
+records.mean(axis=0)   # one value per COLUMN (down the rows)
+records.mean(axis=1)   # one value per ROW (across the columns)
+In simple words
+The standard deviation tells you how spread out the numbers are. If it is small, most numbers sit close to the average. The median is the middle number once everything is sorted, so it is not pulled around by a few very big or very small values. argmax gives the position of the biggest value, not the value itself.
+How to remember the axis: axis=0 squashes the rows (you get one answer per column). axis=1 squashes the columns (you get one answer per row).
+5.3 Broadcasting
+Broadcasting lets NumPy combine arrays of different shapes. The rule: compare the shapes from the right side. Two sizes fit together if they are equal, or if one of them is 1. A size of 1 gets stretched to match the other.
+records - records.mean(axis=0)     # (3, 3) - (3,): subtract each column's mean
+ 
+# Standardisation: needed later for gradient descent and for comparing features
+z = (exp6 - exp6.mean()) / exp6.std()
+Common error: trying to add shapes (3,) and (4,) fails, because 3 and 4 are not equal and neither is 1.
+In simple words
+Standardising means moving numbers so their average is 0 and their spread is 1. We do it by subtracting the mean and dividing by the standard deviation. After this, a value of +1 means "one standard deviation above average". Later, this lets us compare features that use very different units, such as years and tasks.
+Choose-the-next-line poll (Module 3)
+We want to standardise exp6 (average 0, spread 1). Which line should we type next?
+A. z = exp6 - exp6.std() / exp6.mean()
+B. z = (exp6 - exp6.mean()) / exp6.std()
+C. z = exp6 / exp6.sum()
+Answer and discussion: B. Run all three. A and C do not centre and scale the numbers properly. This links to broadcasting: the single mean and std values are stretched across the whole array.
+6. Module 4: Reshaping, Joining, Matrix Maths and Random Numbers (7 min)
+This is a quick tour of tools we will need soon. Go fast and let participants run the cells.
+a = np.arange(6)
+a.reshape(2, 3)          # 2 rows, 3 columns
+a.reshape(-1, 1)         # column vector; -1 means "work it out"
+a.reshape(2, 3).T        # transpose -> shape (3, 2)
+ 
+np.column_stack([exp6, rework6, absent6])   # features side by side, shape (6, 3)
+ 
+A = np.array([[1, 2], [3, 4]])
+v = np.array([5, 6])
+A * A                    # element-wise product
+A @ A                    # MATRIX product (rows times columns)
+A @ v                    # matrix times vector -> [17 39]
+np.linalg.solve(A, v)    # solves A x = v
+ 
+rng = np.random.default_rng(42)   # seed makes results repeatable
+rng.integers(20, 80, size=5)      # random integers from 20 to 79
+rng.normal(0, 8, size=5)          # bell-curve noise, mean 0, std 8
+rng.permutation(10)               # shuffled 0..9
+Please stress two points:
+The * sign multiplies item by item. The @ sign does matrix multiplication (each row of the first table is multiplied with each column of the second and added up). Regression needs the second.
+The seed (the number 42) is the starting point of the random number generator. It makes random numbers repeat, so everyone gets the same "random" results.
+In simple words
+Reshape changes the layout of the same numbers without changing them. Transpose (.T) swaps rows and columns. A matrix is just a 2D array of numbers. column_stack puts several columns side by side to make a table of features.
+Quiz 1
+What is the difference between A * B and A @ B for two 2D arrays?
+A. No difference
+B. * multiplies item by item, @ is matrix multiplication
+C. * is matrix multiplication, @ multiplies item by item
+D. @ only works on 1D arrays
+Answer and discussion: B. Mixing these up is the most common NumPy mistake in regression code.
+Time check: about 39 minutes should have passed (44 once the break is over).
+7. Module 5: Regression Ideas (10 min)
+7.1 The idea and the words
+Imagine a chart. On the bottom axis (x) we put the years of experience. On the side axis (y) we put the productivity score. Each record is one dot. The dots slope upwards: more experience usually goes with a higher score.
+Linear regression draws the straight line that passes as close as possible to all the dots. Then we use that line to predict.
+The line is written as y = m x + c.
+m is the slope. It says how many extra score points we get for each extra year of experience.
+c is the intercept. It is where the line starts when x is 0. It is often just a starting number that makes the line fit.
+When we have more than one feature, the model becomes y = c + w1 x1 + w2 x2 + .... Each w is a weight that says how much that feature matters: if the feature goes up by 1 and everything else stays the same, the prediction changes by w. It is called "linear" because the features are only multiplied by weights and added up.
+Word
+Meaning
+In our project
+Feature (x)
+An input used to predict
+The seven columns: experience_years, training_hours, task_complexity, ai_assistant, rework_tickets, absent_days, team_size
+Target (y)
+The value we want to predict
+productivity_score
+Parameters
+The numbers the model learns
+The weights and the intercept
+Prediction
+What the model says
+The score the model expects for that person
+Residual
+Real value minus predicted value
+Real score minus predicted score
+Loss
+One number that says how wrong the line is
+Mean squared error
+7.2 The loss function: measuring how wrong the line is
+For each record, the residual is the real value minus the predicted value. Some residuals are positive and some are negative, so if we just added them up, they would cancel out. To avoid this, we square each one (multiply it by itself) and then take the average:
+MSE = average of (real - predicted) squared
+MSE stands for mean squared error. Squaring does two things: it removes the minus signs, and it punishes big mistakes much more than small ones (a miss of 20 counts four times as much as a miss of 10). The line with the smallest MSE is called the least squares line. The function that measures how wrong we are is called the loss function.
+In simple words
+Think of MSE as a bowl. Every possible line is a point on the bowl, and the height is how wrong that line is. Training means finding the bottom of the bowl.
+7.3 Two ways to reach the bottom of the bowl
+The direct formula (normal equation). We use maths to jump straight to the bottom. For one feature: m = sum((x - mean_x)(y - mean_y)) / sum((x - mean_x)^2), and c = mean_y - m x mean_x. For many features: theta = inverse(X^T X) X^T y. (theta is just the name for the list of all learned numbers.)
+Gradient descent. We start with a guess, check which way is downhill, take a small step that way, and repeat. The size of each step is the learning rate.
+The direct formula is exact and quick for small problems. Gradient descent is used when the data is very large, or when no direct formula exists. That is why learners should know both.
+Quiz 2
+A fitted line is score = 1.9 x experience + 53. What does the 1.9 tell us?
+A. The intercept
+B. Each extra year of experience adds about 2 points to the predicted score
+C. The model's error
+D. The number of employees
+Answer and discussion: B. It is the slope.
+8. Module 6: Simple Regression Live, One Feature (13 min)
+Now we build our first real model. It uses one feature only: experience. Modules 6 and 7 use this one feature. Then Module 8 brings in all seven, and Module 9 asks which ones matter.
+8.1 Load the data and look at each feature
+data = np.genfromtxt("employee_productivity_data.csv", delimiter=",", skip_header=1)
+month    = data[:, 2]
+features = data[:, 3:10]     # the 7 feature columns
+score    = data[:, 11]       # the target (productivity_score)
+ 
+print(data.shape)                  # (6000, 12)
+print(np.isnan(features).sum(axis=0))   # blanks: [0 162 0 0 0 0 0]
+ 
+ok = ~np.isnan(features).any(axis=1)    # True for rows with no blank
+F, y, mo = features[ok], score[ok], month[ok]
+print(F.shape)                     # (5838, 7)
+print(y.mean().round(1), F[:, 0].mean().round(1))   # 62.4 and 4.9
+This uses what we learned in Modules 2 to 4: shape, picking columns, masks and summaries. We use np.genfromtxt (not np.loadtxt) because our file has blank cells, and genfromtxt turns them into NaN. The line with .any(axis=1) asks, for each row, "is any cell blank?", and the ~ flips it to "no blanks".
+Before building anything, ask a first question of the data: which features move together with the score? We measure this with the correlation.
+In simple words
+Correlation is a number between -1 and +1. A value near +1 means the two columns rise together. A value near -1 means one rises while the other falls. A value near 0 means there is no straight-line link. Correlation tells us about a link. It does not prove that one thing causes the other.
+names = ["experience_years", "training_hours", "task_complexity",
+         "ai_assistant", "rework_tickets", "absent_days", "team_size"]
+for j in range(7):
+    print(names[j], np.corrcoef(F[:, j], y)[0, 1].round(2))
+Feature (strongest link first)
+Correlation with score
+rework_tickets
+-0.50
+experience_years
++0.48
+absent_days
+-0.31
+ai_assistant
++0.30
+task_complexity
+-0.29
+training_hours
++0.20
+team_size
++0.01
+Read the table with the class. Rework (negative) and experience (positive) have the strongest links. Absent days, AI assistant and task complexity come next. Training hours has a weak link. Team size has almost none (+0.01). We start with experience because it is the easiest to understand. You can repeat the same steps for any other feature.
+Choose-the-next-line poll (Module 6, part 1)
+We want the correlation between experience and score only. Which line is right?
+A. np.corrcoef(F[:, 0], y)[0, 1]
+B. np.corrcoef(F, y)
+C. F[:, 0].corr(y)
+Answer and discussion: A. np.corrcoef returns a small table of correlations, so we pick one value with [0, 1]. B gives a table for the wrong inputs. C is a pandas method that NumPy arrays do not have.
+8.2 The baseline first, then the fit
+A good habit: always compare a new model with a simple baseline. Our baseline is "predict the average score for everyone". If our model cannot beat it, the model is not worth using.
+rmse = lambda a, b: np.sqrt(np.mean((a - b) ** 2))
+ 
+base = np.full(len(y), y.mean())          # same guess for everyone
+print("Baseline RMSE:", rmse(y, base).round(1))    # about 9.1
+ 
+x = F[:, 0]                               # experience_years
+m = ((x - x.mean()) * (y - y.mean())).sum() / ((x - x.mean()) ** 2).sum()
+c = y.mean() - m * x.mean()
+print(m.round(2), c.round(1))             # about 1.88 and 53.2
+y_pred = m * x + c
+The slope is about 1.88: each extra year of experience goes with about 2 extra points, if experience is the only thing we look at. The intercept 53.2 is the predicted score for someone with 0 years, which is a starting number for the line more than a real prediction.
+8.3 Measuring the model
+mse  = np.mean((y - y_pred) ** 2)
+rmse_ = np.sqrt(mse)                  # in score points; penalises big misses
+mae  = np.mean(np.abs(y - y_pred))    # in score points; average miss
+ss_res = np.sum((y - y_pred) ** 2)
+ss_tot = np.sum((y - y.mean()) ** 2)
+r2 = 1 - ss_res / ss_tot
+print(rmse_.round(1), mae.round(1), r2.round(3))   # about 8.0, 6.4, 0.231
+Score
+What it means
+Notes
+MSE
+Average of the squared mistakes
+This is what the model tries to make small. Its unit is "points squared", which is hard to picture.
+RMSE
+Square root of MSE
+The typical mistake, in score points. Big mistakes count more.
+MAE
+Average mistake, ignoring minus signs
+The typical mistake, in score points. Less affected by a few huge mistakes.
+R-squared
+The share of the ups and downs in y that the model explains
+1 is perfect. 0 means no better than always guessing the average.
+Compare RMSE: our one-feature model is about 8.0 and the baseline is about 9.1, so the model is better, but not by a lot. R-squared is 0.231, which means experience alone explains about 23 percent of the ups and downs in the score. The other 77 percent comes from other things. Modules 8 and 9 look at them.
+Choose-the-next-line poll (Module 6, part 2)
+A person has 6 years of experience. Which line gives the predicted score?
+A. print(m * 6 + c)
+B. print(m + 6 * c)
+C. print(y_pred[6])
+Answer and discussion: A (about 65). B mixes up the slope and the intercept. C looks up the 7th prediction in the data, which has nothing to do with a person who has 6 years of experience.
+Time check: about 67 minutes should have passed.
+9. Module 7: Gradient Descent and the Learning Rate (10 min)
+Gradient descent finds the best line by taking small steps downhill. For each number we want to learn (the slope m and the intercept c), the gradient tells us: "if this number goes up a little, does the loss go up or down, and how fast?"
+For one feature, the gradients are dm = 2 x mean(error x x) and dc = 2 x mean(error), where error = prediction - real. Then we move against the gradient (downhill): m = m - lr x dm. Here lr is the learning rate, the size of each step.
+Before we start, we standardise x so that both numbers learn at a similar speed. This uses broadcasting from Module 3.
+x_s = (x - x.mean()) / x.std()
+m_s, c_s = 0.0, 0.0
+lr = 0.1
+for epoch in range(200):
+    error = (m_s * x_s + c_s) - y
+    dm = 2 * np.mean(error * x_s)
+    dc = 2 * np.mean(error)
+    m_s -= lr * dm
+    c_s -= lr * dc
+    if epoch % 50 == 0:
+        print(epoch, np.mean(error ** 2).round(1))   # 3,975.7, then 63.9 ...
+ 
+# convert back to the original units of x
+m_gd = m_s / x.std()
+c_gd = c_s - m_s * x.mean() / x.std()
+print(m_gd.round(2), c_gd.round(1))   # 1.88 and 53.2: matches the closed form
+In simple words
+Gradient descent = guess, check which way is downhill, take a small step, repeat. After enough steps we reach the same answer as the direct formula. One epoch is one full pass over all the data. Convergence means the loss has stopped improving, so we have reached the bottom.
+Choose-the-next-line poll (Module 7)
+Inside the loop, how should we update the parameter?
+A. m_s += lr * dm
+B. m_s -= lr * dm
+C. m_s = dm
+Answer and discussion: B. The gradient points uphill, so we go the opposite way. A climbs up the bowl and the loss grows. C throws away the old value. Run each option for a few rounds and watch the loss.
+9.1 The learning rate experiment
+Run the loop again with three learning rates. Before each run, ask participants to vote on what will happen. The best possible MSE is about 64 (RMSE 8.0).
+Learning rate
+What happens (after 200 rounds)
+0.001 (too small)
+The loss goes down, but far too slowly. It is still about 1,827, nowhere near 64.
+0.1 (just right)
+It goes down smoothly. By about round 23 it is within 0.5 percent of the best value, and it stays there.
+1.5 (too big)
+Each step jumps past the bottom. The loss grows without limit and the numbers blow up.
+Also explain: for very large data, versions called stochastic and mini-batch gradient descent use a small part of the data at each step, so each step is much cheaper.
+10. Module 8: All Seven Features Together (10 min)
+10.1 The design matrix and the normal equation
+So far we used one feature. But think about two people who both have 5 years of experience. One was never absent and had no rework. The other was absent 4 days and had 5 tasks sent back. Their scores will probably be very different. So it helps to use all seven features at once.
+We put the features in a table called the design matrix X. Each row is one record. We add a first column of ones to carry the intercept. The numbers we learn are collected in a list called theta. Predictions are then simply X @ theta.
+X = np.column_stack([np.ones(len(y)), F])        # shape (5838, 8)
+theta = np.linalg.solve(X.T @ X, X.T @ y)       # normal equation
+theta2, *_ = np.linalg.lstsq(X, y, rcond=None)  # same, numerically safer
+print(theta.round(2))
+# [66.98 1.87 0.56 -4.34 5.61 -1.41 -2.75 -0.03]
+ 
+pred = X @ theta
+k = 7                                    # number of features
+r2 = 1 - np.sum((y - pred) ** 2) / np.sum((y - y.mean()) ** 2)
+adj_r2 = 1 - (1 - r2) * (len(y) - 1) / (len(y) - k - 1)
+print(rmse(y, pred).round(1), r2.round(3), adj_r2.round(3))
+# 5.3, 0.658, 0.658
+ 
+# person 1: 6 yrs, 10 hrs training, complexity 3, AI yes, 2 rework, 1 absent, team 8
+print(theta @ np.array([1, 6, 10, 3, 1, 2, 1, 8]))   # about 70.6
+The weights are the heart of the project. Here is each one in plain language. The phrase "holding the others the same" means: imagine two people who are identical in every other feature.
+Feature
+Weight
+Plain meaning
+experience_years
++1.87
+Holding the others the same, each extra year of experience adds about 1.9 points.
+training_hours
++0.56
+Each extra training hour adds about 0.6 points (five more hours: about 2.8).
+task_complexity
+-4.34
+Each step up in task complexity (for example 3 to 4) lowers the score by about 4.3 points. Harder tasks take longer.
+ai_assistant
++5.61
+Using the AI assistant adds about 5.6 points. (For a yes/no feature, the weight is simply the difference between yes and no.)
+rework_tickets
+-1.41
+Each task sent back for rework lowers the score by about 1.4 points.
+absent_days
+-2.75
+Each absent day lowers the score by about 2.7 points.
+team_size
+-0.03
+Each extra person in the team changes the score by about -0.03 points. That is essentially zero.
+Notice something interesting. In the one-feature model, the rework slope was -2.77. In the seven-feature model it is -1.41, about half. The reason: people with more experience usually have less rework, so the simple slope was also soaking up the effect of experience. This is what "holding the other features the same" means, and it is the first big lesson for finding what really matters.
+RMSE falls from 8.0 (experience only) to 5.3, and R-squared rises from 0.231 to 0.658. That is a big gain: the seven features together explain about 66 percent of the ups and downs in the score.
+In simple words
+Adjusted R-squared is R-squared with a fairness correction. Plain R-squared can never go down when you add a feature, even a useless one. Adjusted R-squared can go down, so it warns you when an extra feature does not help.
+10.2 Gradient descent with more than one feature
+The same step-by-step method works for any number of features. The gradient in matrix form is (2/n) X^T (X theta - y). The features must be standardised first.
+mu, sd = F.mean(axis=0), F.std(axis=0)
+Xs = np.column_stack([np.ones(len(y)), (F - mu) / sd])
+theta_s = np.zeros(8)
+for epoch in range(300):
+    grad = (2 / len(y)) * Xs.T @ (Xs @ theta_s - y)
+    theta_s -= 0.1 * grad
+ 
+w = theta_s[1:] / sd                       # back to original units
+b = theta_s[0] - np.sum(theta_s[1:] * mu / sd)
+print(b.round(2), w.round(2))
+# 66.98 and [1.87 0.56 -4.34 5.61 -1.41 -2.75 -0.03]: matches the normal equation
+Two different methods, same result.
+10.3 Why scaling matters
+Gradient descent works faster and more safely when all features have a similar size. Here, team size is around 7.8 and ai_assistant is only 0 or 1, so they are very different in size.
+The direct formula does not need scaling. But scaled weights are in "standard deviation" units, which lets you fairly compare which feature matters more. This is exactly what Module 9 uses.
+Always work out the mean and standard deviation on the training data only, then reuse those same numbers on new data.
+Quiz 3
+In X = np.column_stack([np.ones(n), F]), why is there a column of ones?
+A. To make the matrix square
+B. To carry the intercept
+C. To standardise the data
+D. It is only decoration
+Answer and discussion: B. When the column of ones is multiplied by the first parameter, it gives the constant c (the intercept).
+Time check: about 87 minutes should have passed.
+11. Module 9: Which Features Affect Productivity? (15 min)
+This is the most important part of the session. In Module 8 we built a model that predicts well. Now we use it to answer the real question: which features affect the productivity score, and how much? We do it in four steps: rank the features fairly, remove them one at a time, check whether each effect is real or luck, and ask "what if" questions.
+11.1 Why we cannot compare the raw weights
+Look at the weights from Module 8. Experience has +1.87, AI assistant has +5.61, and task complexity has -4.34. Does that mean the AI assistant matters three times more than experience? No. The weights are in different units. One year of experience, one training hour, one complexity level and one yes/no switch are not the same size of change. Experience ranges from 0.5 to 14.4, while the AI assistant only goes from 0 to 1.
+In simple words
+To compare features fairly, we put them on the same scale first. We standardise each feature (average 0, spread 1) and then multiply each weight by that feature's standard deviation. The result is called a standardised weight. It answers: "if this feature goes up by one typical step (one standard deviation), how many score points change?" Now every feature uses the same kind of step, so we can compare them.
+Prediction poll (Module 9)
+Before we run the code, which feature do you expect to have the biggest standardised weight (the biggest effect on the score)?
+A. experience_years
+B. rework_tickets
+C. ai_assistant
+Answer and discussion: A. Experience has the biggest effect (+4.35 points per typical step), even though the AI assistant has the biggest raw weight. This is exactly why we standardise. Return to the opening poll from Module 1 and see who guessed right.
+11.2 Rank the features
+sd = F.std(axis=0)
+std_w = theta[1:] * sd              # standardised weights
+for j in np.argsort(-np.abs(std_w)): # biggest effect first
+    print(names[j], theta[1 + j].round(2), std_w[j].round(2))
+Rank
+Feature
+Raw weight
+One typical step (std dev)
+Standardised weight
+Direction
+1
+experience_years
++1.87
+2.33
++4.35
+raises the score
+2
+task_complexity
+-4.34
+0.72
+-3.13
+lowers the score
+3
+absent_days
+-2.75
+1.01
+-2.77
+lowers the score
+4
+rework_tickets
+-1.41
+1.64
+-2.31
+lowers the score
+5
+ai_assistant
++5.61
+0.40
++2.26
+raises the score
+6
+training_hours
++0.56
+2.98
++1.67
+raises the score
+7
+team_size
+-0.03
+2.60
+-0.07
+lowers the score
+How to read it: experience has the biggest effect (+4.3 points per typical step). Absent days (-2.8), task complexity (-3.1), rework (-2.3) and the AI assistant (+2.3) come next and are all similar in size. Training hours is smaller (+1.7). Team size is essentially zero (-0.07).
+11.3 The drop-one test: what do we lose without it?
+A second, very practical check. Remove one feature, refit the model, and see how much R-squared falls. If the model barely gets worse, that feature was not adding much.
+for j in range(7):
+    keep = [k for k in range(7) if k != j]
+    Xk = np.column_stack([np.ones(len(y)), F[:, keep]])
+    t, *_ = np.linalg.lstsq(Xk, y, rcond=None)
+    r2_k = 1 - np.sum((y - Xk @ t) ** 2) / np.sum((y - y.mean()) ** 2)
+    print(names[j], r2_k.round(3), (r2_all - r2_k).round(3))
+Feature removed
+R-squared without it
+Loss of R-squared
+R-squared when it is the only feature
+experience_years
+0.473
+0.185
+0.231
+task_complexity
+0.565
+0.093
+0.081
+absent_days
+0.566
+0.092
+0.096
+ai_assistant
+0.598
+0.060
+0.089
+rework_tickets
+0.607
+0.051
+0.248
+training_hours
+0.625
+0.034
+0.040
+team_size
+0.658
+0.000
+0.000
+With all seven features, R-squared is 0.658. Removing experience hurts the most (it falls by 0.185). Removing absent days, task complexity, the AI assistant or rework each costs a clear amount. Removing training hours costs 0.034, a small amount. Removing team size costs 0.000, which is nothing. The last column shows each feature on its own. Add it up and you will see that the single-feature scores do not simply add together, because some features share information (for example, experienced people have less rework).
+11.4 The luck check: is the effect real or just chance?
+Even a useless feature will get a small weight, because real data is never perfectly tidy. How do we know whether a weight is real? We use the bootstrap: we re-draw the data at random many times (some rows picked twice, some not at all), refit the model each time, and see how much each weight shakes.
+In simple words
+The bootstrap is like asking: "If we had collected a slightly different group of employees, would we get the same answer?" If a weight stays on the same side of zero in almost every re-draw, the effect is steady and probably real. If it swings between positive and negative, it may be luck.
+rng = np.random.default_rng(42)
+W = np.zeros((300, 7))
+for b in range(300):
+    i = rng.integers(0, len(y), len(y))          # random rows, with repeats
+    t, *_ = np.linalg.lstsq(X[i], y[i], rcond=None)
+    W[b] = t[1:]
+low, high = np.percentile(W, 2.5, axis=0), np.percentile(W, 97.5, axis=0)
+for j in range(7):
+    print(names[j], low[j].round(2), high[j].round(2))
+Feature
+Weight
+Likely range (95 percent)
+Verdict
+experience_years
++1.87
++1.80 to +1.92
+Real: range is clearly above 0
+training_hours
++0.56
++0.52 to +0.61
+Real: range is clearly above 0
+task_complexity
+-4.34
+-4.56 to -4.10
+Real: range is clearly below 0
+ai_assistant
++5.61
++5.33 to +5.93
+Real: range is clearly above 0
+rework_tickets
+-1.41
+-1.50 to -1.32
+Real: range is clearly below 0
+absent_days
+-2.75
+-2.89 to -2.60
+Real: range is clearly below 0
+team_size
+-0.03
+-0.08 to +0.02
+Cannot tell: range includes 0
+Six features have ranges that stay clearly on one side of zero, so their effects are steady. The range for team size includes zero, so the data gives us no reason to say team size affects productivity. Of course, the range being narrow does not mean the feature is the best lever to pull. It only means that the effect is not luck.
+11.5 What-if questions: using the model to see the effect of a change
+Now the fun part. Take a typical employee (4 years of experience, 8 training hours, complexity 3, no AI assistant, 3 rework tickets, 1 absent day, team of 8). The model predicts about 59. Change one thing at a time and see what the model says.
+base = np.array([4, 8, 3, 0, 3, 1, 8])
+print(theta[0] + theta[1:] @ base)      # the starting prediction
+changed = base.copy(); changed[1] = 13   # training 8 -> 13 hours
+print(theta[0] + theta[1:] @ changed)
+Change (everything else the same)
+Change in predicted score
+training_hours 8 to 13 (+5 hours)
++2.8
+ai_assistant 0 to 1
++5.6
+rework_tickets 3 to 1
++2.8
+absent_days 1 to 3
+-5.5
+task_complexity 3 to 4
+-4.3
+team_size 8 to 12
+-0.1
+Participants can use this to see which levers might help a team: more training, giving the AI assistant, fewer tasks bounced back, supporting people who are absent a lot, and matching task difficulty to people. Changing team size does almost nothing.
+Important: a link is not a cause
+The weights describe links in this data. They do not prove that changing one feature will cause the score to change. For example, people who use the AI assistant might also be the ones who got better tasks. Rework may be partly a result of low productivity rather than a cause of it. Absent days may reflect illness, not effort.
+In a real project, a pilot (try the change with one team and compare) is needed before concluding that a feature causes a result.
+Back to the opening poll: the feature with the biggest effect is experience, then a group of four similar ones (absent days, task complexity, rework and the AI assistant), then training hours, and finally team size, which has none. Many people guess team size or rework first. Data helps us check what we believe.
+Time check: about 102 minutes should have passed.
+12. Module 10: Can We Trust the Model? (6 min)
+We use the seven-feature model from Module 8. The same checks work for any regression model.
+12.1 What linear regression assumes
+Assumption
+What it means
+How to check
+Straight-line link
+The link between each feature and the target is roughly a straight line
+Residuals show no curve when plotted against predictions
+Independent and steady
+Mistakes are not linked to each other and do not slowly change over time
+Average residual for each time period
+Same spread everywhere
+The size of the mistakes is similar for small and large predictions
+Compare the spread of residuals for low and high predictions
+Bell-shaped mistakes
+Mistakes are roughly bell-shaped around zero
+About 95 percent of residuals within 2 standard deviations
+Features are not copies
+No feature is almost a copy of another
+Check the correlation between features; VIF; odd or unstable weights
+12.2 Checking the residuals with NumPy
+res = y - pred                 # residuals
+print(res.mean().round(3))     # essentially 0
+print(np.mean(np.abs(res) < 2 * res.std()).round(3))   # about 0.958
+ 
+low = pred < np.median(pred)   # boolean mask
+print(res[low].std().round(1), res[~low].std().round(1))   # about 5.3 vs 5.3
+ 
+z = np.abs(res) / res.std()
+print(z.max().round(1), np.sum(z > 3))   # about 3.6 and 17 records
+The residuals are centred on zero, and about 96 percent are within 2 standard deviations. So the mistakes are roughly bell-shaped. Good.
+The "same spread" check passes: the spread is about 5.3 for low predictions and 5.3 for high ones. One typical mistake of about 5.3 points is fair for everyone. (In real data, this check often fails, and ranges need to grow with the prediction.)
+There are 17 records more than 3 standard deviations away (the worst is 3.6). These are unusual months. Look into outliers before you decide to remove them, because squaring lets them pull the line strongly.
+In simple words
+An outlier is a row that is far away from the rest. A residual plot (residuals on the side, predictions along the bottom) should look like a shapeless horizontal band. A curve or a fan shape warns that the model is missing something.
+12.3 Does the model drift over time?
+Real data has a timeline. We can check whether the mistakes change over time by averaging the residuals for each period using masks:
+for lo, hi in [(1, 6), (7, 12), (13, 18), (19, 24)]:
+    era = (mo >= lo) & (mo <= hi)
+    print(lo, hi, era.sum(), res[era].mean().round(2), F[era, 3].mean().round(2))
+    # columns: months, records, mean residual, share using the AI assistant
+Months
+Records
+Mean residual
+Share using AI assistant
+1 to 6
+1,466
+-0.13
+0 percent
+7 to 12
+1,464
++0.12
+0 percent
+13 to 18
+1,455
+-0.12
+21 percent
+19 to 24
+1,453
++0.13
+60 percent
+The residuals stay within about 0.1 points of zero in every period. The model stays steady even though the AI assistant arrives from month 13 and spreads (0 percent of records before month 13, and about 60 percent by months 19 to 24). This works because the model includes the AI assistant as a feature. If we had left it out, the later months would show a gap.
+12.4 Features that are copies of each other (multicollinearity)
+Multicollinearity means two or more features carry almost the same information. Then the model cannot decide how to share the credit between them, and the individual weights become unreliable. We measure it with the VIF (variance inflation factor). For each feature, we try to predict it from the other six. If that works very well, the feature is a near-copy and has a high VIF.
+In simple words
+VIF = 1 / (1 - R-squared), where the R-squared comes from predicting one feature using all the other features. A VIF of 1 means the feature is independent of the others. A rule of thumb says a value above 5 to 10 is a worry.
+for j in range(7):
+    others = [k for k in range(7) if k != j]
+    Xo = np.column_stack([np.ones(len(y)), F[:, others]])
+    t, *_ = np.linalg.lstsq(Xo, F[:, j], rcond=None)
+    r = F[:, j] - Xo @ t
+    r2_j = 1 - (r @ r) / np.sum((F[:, j] - F[:, j].mean()) ** 2)
+    print(names[j], (1 / (1 - r2_j)).round(2))
+All seven VIF values are between 1.00 and 1.27, far below 5. So our features do not copy each other, and the weights in Module 9 can be trusted. The largest are task_complexity (1.27), rework_tickets (1.26) and experience_years (1.23), because experienced people tend to get harder tasks and have less rework.
+Now the extreme case. Suppose someone adds a new column, experience_months (experience_years x 12). It is an exact copy in different units.
+expm = F[:, 0] * 12
+X9 = np.column_stack([X, expm])
+print(np.linalg.matrix_rank(X9), X9.shape[1])    # rank 8, but 9 columns
+t9, *_ = np.linalg.lstsq(X9, y, rcond=None)
+print(t9[1] + 12 * t9[8])                         # 1.87: only this combination is meaningful
+The rank tells us how many columns carry independent information. Here it is 8, but there are 9 columns, so one is redundant. The solver can only fix the combination (years weight + 12 x months weight = 1.87, which is the same as the original 1.87), not the two weights separately. With np.linalg.solve you may get an error or huge numbers that cancel each other out. Either way, we cannot read meaning into the individual weights. Ways to fix it: remove one of the copies, combine them, collect more varied data, or use ridge (Module 11).
+Quiz 4
+A new feature, experience_months (= experience_years x 12), is added to a model that already has experience_years. What is the problem?
+A. Predictions become impossible
+B. The new feature is made from an existing one, so the individual weights become meaningless
+C. R-squared drops to zero
+D. The intercept disappears
+Answer and discussion: B. The matrix has a redundant column. Predictions from a sensible solver are still fine, but the weights cannot be interpreted.
+Time check: about 108 minutes should have passed.
+13. Module 11: Working on New Data (7 min)
+13.1 A random split
+We should judge a model on records it was not built on. A simple way: keep back 20 percent of the records at random and use them only for testing. The part used to build the model is the training set, and the part kept aside is the test set.
+rng = np.random.default_rng(42)
+idx = rng.permutation(len(y))
+split = int(0.8 * len(y))
+tr, te = idx[:split], idx[split:]
+theta_tr, *_ = np.linalg.lstsq(X[tr], y[tr], rcond=None)
+print(rmse(y[tr], X[tr] @ theta_tr).round(1))   # train: about 5.3
+print(rmse(y[te], X[te] @ theta_tr).round(1))   # test : about 5.3
+Train and test mistakes are almost the same. This is the healthy result for a simple model with plenty of data.
+13.2 A split by time: the honest test for predicting the future
+Our predictor will be used on future months. So we should test it that way: build it on the past and test it on the most recent months.
+past, future = mo <= 18, mo >= 19     # 4,385 and 1,453 records
+theta_t, *_ = np.linalg.lstsq(X[past], y[past], rcond=None)
+pred_f = X[future] @ theta_t
+print(rmse(y[future], pred_f).round(1))          # about 5.3
+print(np.mean(y[future] - pred_f).round(2))      # about +0.48
+print(rmse(y[future], np.full(future.sum(), y[past].mean())).round(1))   # baseline: 10.4
+The model still beats the baseline by a wide margin (5.3 against 10.4). The test mistake is close to the training mistake of 5.3, so the model works well on new data. The small average error (+0.48) means the model guesses a little low for recent months.
+In this data, the random split (5.3) and the time split (5.3) give similar answers, because the simulated process is steady. With real data that changes, for example after a reorganisation, the gap can be much bigger.
+In simple words
+Split the data the same way you will use the model. A random split quietly lets the model "peek" at the future.
+13.3 Too simple and too complex (underfitting and overfitting)
+Let us fit curves of different complexity using only 30 records (experience against score), and then test on the other records. A "degree 2" curve has a bend, a "degree 5" curve can wiggle a lot. These are still linear regression, because we just add features like x squared and x cubed.
+rng2 = np.random.default_rng(5)
+small = rng2.permutation(len(y))[:30]
+rest = np.setdiff1d(np.arange(len(y)), small)
+xz = (F[:, 0] - F[:, 0].mean()) / F[:, 0].std()
+for d_ in [0, 1, 2, 5]:
+    co = np.polyfit(xz[small], y[small], d_)
+    print(d_, rmse(y[small], np.polyval(co, xz[small])).round(1),
+             rmse(y[rest],  np.polyval(co, xz[rest])).round(1))
+Degree
+Training RMSE
+Test RMSE
+Verdict
+0 (flat line)
+8.3
+9.1
+Underfitting: too simple, bad everywhere
+1 (straight line)
+6.4
+8.0
+Good fit, small gap
+2
+6.4
+8.0
+No real gain over the straight line
+5
+6.2
+13.5
+Overfitting: copies the noise, wild on new data
+Underfitting means the model is too simple: it makes big mistakes on the training data and on the test data. Overfitting means the model is too complex: it makes small mistakes on the training data but big mistakes on new data. These numbers come from one random draw of 30 records (seed 5). The pattern is typical.
+In simple words
+Too simple = misses the pattern. Too complex = memorises the noise. We want something in the middle.
+13.4 Ridge: keeping weights small
+Ridge regression adds a penalty for big weights: loss = MSE + lambda x sum of squared weights. Lambda is the strength of the penalty. There is still a direct formula, a small change to the normal equation: theta = inverse(X^T X + lambda I) X^T y. The intercept is not penalised, and the features must be standardised.
+A = np.column_stack([np.ones(len(y)), (F - mu) / sd])
+np.set_printoptions(suppress=True)
+for lam in [0, 1000, 10000]:
+    Pm = lam * np.eye(8); Pm[0, 0] = 0          # intercept not penalised
+    theta_r = np.linalg.solve(A.T @ A + Pm, A.T @ y)
+    print(lam, theta_r.round(2))
+# 0     : [62.39 4.35 1.67 -3.13 2.26 -2.31 -2.77 -0.07]
+# 1000  : [62.39 3.6 1.44 -2.49 1.98 -2.32 -2.36 -0.05]
+# 10000 : [62.39 1.54 0.65 -0.96 0.93 -1.39 -1.02 0.01]
+The weights are now per standard deviation of each feature, in the order experience, training, complexity, AI, rework, absent days and team size. As lambda grows, every weight shrinks towards zero, and the weak ones (team size) stay near zero. Ridge is most useful when features copy each other, because then it shares the credit between them instead of letting one carry everything. We choose lambda by checking performance on data we kept aside. Lasso regression uses a different penalty and can push weights exactly to zero, which makes it a natural tool for finding unimportant features. Just mention its name.
+Quiz 5
+A model has RMSE 5 on training data and 25 on test data. What is the most likely problem?
+A. Underfitting
+B. Overfitting
+C. The features are standardised
+D. The learning rate is too small
+Answer and discussion: B. Small mistakes on training data and much bigger mistakes on test data is the sign of overfitting.
+14. Module 12: Wrap-up (5 min)
+Topic
+Remember
+Array basics
+An array holds one type of number; shape is (rows, columns); a slice is a window, not a copy; np.genfromtxt reads a CSV and turns blanks into NaN
+Picking and speed
+arr[mask] with & and |; ~np.isnan(x) skips blanks; avoid loops over rows; axis=0 squashes rows; broadcasting compares shapes from the right
+Matrices
+* multiplies item by item, @ is matrix multiplication; use solve or lstsq for linear equations
+Model
+y = c + w1 x1 + ...; fit it by making MSE small
+Solving
+The normal equation gives the exact answer; gradient descent works at scale (standardise, tune the learning rate)
+Measuring
+RMSE and MAE are in score points; also R-squared and adjusted R-squared; always compare with a baseline
+Which features matter
+Compare standardised weights (not raw weights); run the drop-one test; check the bootstrap range; use what-if questions to see the size of an effect
+Trust
+Check residuals, outliers, drift over time and features that are copies of each other (VIF)
+New data
+Split the way you will use the model (by time for forecasting); too simple is underfitting, too complex is overfitting; ridge shrinks weights
+One sentence to take home: experience alone explained about 23 percent of the ups and downs in the productivity score. All seven features together explained about 66 percent, but only six of them truly mattered. Team size added nothing, and the strongest effects were experience, absent days, task complexity, rework and the AI assistant. Data helped us separate what sounds important from what is important.
+Two-minute talk: using a productivity analysis fairly
+Ask the room: "If your manager had this analysis, what would be a good use and what would be a bad use?" Guide the answers towards these points:
+Good uses: learning what helps people do well (training, tools, task planning), noticing early that a team needs support, and finding and removing blockers.
+Bad uses: ranking people, deciding pay, or deciding who stays, based on a predicted score. The model only sees seven features. It does not see illness, family duties, team changes or personal strengths. A large part of the score (about one third) is still not explained.
+Fairness: features such as absent days or rework may reflect someone's situation, not their effort. A model that learns from them can treat people unfairly. Check the mistakes for different groups before relying on a model, and always keep a human in the decision.
+Openness: people who are measured by a model should know it exists, what it uses and how they can challenge it.
+14.1 Common mistakes to warn about
+Using Python's words and / or instead of & / | on arrays, and mixing up * with @.
+Forgetting that a slice changes the original array.
+Forgetting the column of ones for the intercept.
+Not standardising before gradient descent, or working out the scaling on all the data instead of only the training data.
+Using a learning rate that is too big and ignoring a loss that keeps rising.
+Comparing raw weights across features with different units, instead of standardised weights.
+Reading a small weight as "unimportant" without looking at the feature's scale, or reading a big weight as proof of cause.
+Judging the model only on the data it was built on, or using a random split when the model will predict the future.
+Forgetting to skip the blank (NaN) rows, which can make the whole calculation return NaN.
+Predicting far outside the data the model has seen (this model has only seen 0.5 to 14.4 years of experience).
+Forgetting the cap: a linear model does not know that scores stop at 100, so a prediction above 100 (possible for someone with every feature in their favour) should be read as 100.
+Treating simulated results as facts about real employees, or using a prediction to judge individual people.
+15. Assignments (after the session)
+Both assignments use the same file, employee_productivity_data.csv. Participants submit a Jupyter or Colab notebook with code, printed results and a short written conclusion. They only need things taught in the session. After the assignments there is a table of reference results for the facilitator.
+Assignment 1 (NumPy): Employee Productivity Analyser
+Scenario. A department head wants a quick summary of two years of employee productivity data. Analyse the file without Python for-loops over the rows (a loop over the list of months is allowed).
+Load the file with np.genfromtxt. Print the shape, the dtype and the first 3 rows. Put the columns into named arrays (month, features, score).
+Count the blank (NaN) cells in each feature. Build a mask ok of rows with no blanks and print how many rows are kept.
+Using boolean masks, work out the average productivity score for each of the 24 months. Which month has the highest average and which has the lowest?
+Work out the average score of records that use the AI assistant and of records that do not. Then explain in one sentence why this simple comparison may be unfair (hint: when did the tool arrive?).
+Count the records with a score of 80 or more, and compare their average rework tickets and absent days with those of records with a score below 50.
+Use np.argsort to list the month, experience, rework tickets and score of the 5 highest scores.
+Work out the baseline error (score minus the overall average) for every record. Then give its average and RMSE for each of four periods: months 1 to 6, 7 to 12, 13 to 18 and 19 to 24.
+Stack experience, rework tickets and score into a matrix. Standardise every column using broadcasting, and check that each column average is close to 0 and each standard deviation is close to 1.
+Work out the correlation matrix of all seven features and the score with np.corrcoef. Which feature has the strongest link with the score? Which has the weakest? Which pair of features is the most strongly linked, and what does this mean for a regression that uses both?
+Assignment 2 (Linear regression): Feature Impact Study
+Scenario. HR wants to know which features affect productivity, by how much, and how far the findings can be trusted. Build the predictor and answer honestly.
+Write reusable functions fit_line(x, y), predict(x, m, c) and metrics(y, y_pred) that give MSE, RMSE, MAE and R-squared. Fit the score on rework_tickets and compare with the baseline (the average).
+Solve the same problem with gradient descent on standardised x, and show it reaches the same slope and intercept. Try two learning rates and describe what happens.
+Fit the one-feature model for each of the seven features and make a table of R-squared. Which feature explains the most on its own?
+Fit all seven features together. Solve with both the normal equation and lstsq, and give R-squared and adjusted R-squared.
+Work out standardised weights and rank the features. Explain in two sentences why raw weights cannot be compared directly.
+Do the drop-one test for every feature and make a table. Which feature can be removed with almost no loss?
+Use the bootstrap (300 re-draws, seed 42) to give a 95 percent range for each weight. Which weights have a range that includes zero?
+Use the model for a what-if analysis: pick a typical employee, change one feature at a time, and report the change in the predicted score for at least four features.
+Check the assumptions: residual average, share of residuals within 2 standard deviations, residual spread for low versus high predictions, outliers beyond 3 standard deviations, VIF for all features, and the average residual for each of the four periods.
+Compare a random 80/20 split with the time split (train on months 1 to 18, test on months 19 to 24). Give train and test RMSE for each and explain the difference.
+Fit ridge regression on the seven standardised features for two values of lambda. Describe what happens to the weights, especially the weakest one.
+Write short answers: (a) what the experience weight means in workplace terms, (b) why the rework weight became smaller when the other features were added, (c) why we cannot say that team size matters, (d) why a link in the data is not proof of cause, (e) why we should not trust the model for a person with 25 years of experience (the file has none above 15), (f) one way this analysis could be used unfairly and one safeguard.
+Reference results for the facilitator
+These values come from the prepared file (6,000 rows, 5,838 after removing blank rows). Use them to check participants' work. They will change if you change the simulation seed or settings.
+Model (fitted on all complete records)
+Slope or weight
+RMSE
+R-squared
+Baseline: average for everyone
+-
+9.1
+0.000
+rework_tickets only
+-2.77
+7.9
+0.248
+experience_years only
++1.88
+8.0
+0.231
+absent_days only
+-2.79
+8.7
+0.096
+ai_assistant only
++6.77
+8.7
+0.089
+task_complexity only
+-3.60
+8.7
+0.081
+training_hours only
++0.62
+8.9
+0.040
+team_size only
++0.03
+9.1
+0.000
+All seven features
+see below
+5.3
+0.658 (adjusted 0.658)
+Weights of the seven-feature model: intercept 66.98, then exp +1.87, train +0.56, cx -4.34, ai +5.61, rw -1.41, ab -2.75, team -0.03.
+Feature
+Standardised weight
+R-squared without it
+Bootstrap 95 percent range
+VIF
+experience_years
++4.35
+0.473
++1.80 to +1.92
+1.23
+training_hours
++1.67
+0.625
++0.52 to +0.61
+1.00
+task_complexity
+-3.13
+0.565
+-4.56 to -4.10
+1.27
+ai_assistant
++2.26
+0.598
++5.33 to +5.93
+1.02
+rework_tickets
+-2.31
+0.607
+-1.50 to -1.32
+1.26
+absent_days
+-2.77
+0.566
+-2.89 to -2.60
+1.01
+team_size
+-0.07
+0.658
+-0.08 to +0.02
+1.00
+Residual checks: mean residual about 0; 95.8 percent within 2 standard deviations; spread 5.3 (low predictions) against 5.3 (high predictions); 17 records beyond 3 standard deviations (the worst is 3.6).
+Random 80/20 split: train RMSE 5.3, test RMSE 5.3. Time split (months 1 to 18 to predict 19 to 24, 4,385 and 1,453 records): train 5.3, test 5.3, average error +0.48, baseline 10.4.
+Ridge on standardised features (order: experience, training, complexity, AI, rework, absent, team): lambda 1000 gives [3.6 1.44 -2.49 1.98 -2.32 -2.36 -0.05] and lambda 10000 gives [1.54 0.65 -0.96 0.93 -1.39 -1.02 0.01].
+The average score is lowest in month 1 (about 59.2) and highest in month 24 (about 67.3). 195 records scored 80 or more and 462 scored below 50. The average rework is 0.6 for the first group and 3.9 for the second.
+Average score with the AI assistant: 67.8; without: 61.0. The simple gap is larger than the model's weight (+5.6) because the tool arrived late and other things changed too.
+The strongest link between two features is task_complexity and rework_tickets (+0.31). The strongest link with the score is rework_tickets (-0.50), and the weakest is team_size (+0.01).
+Baseline error by period (average error and RMSE): months 1 to 6: -2.7 and 8.9; months 7 to 12: -1.5 and 8.6; months 13 to 18: +0.4 and 9.1; months 19 to 24: +3.9 and 9.8.
+Suggested marking scheme
+What is marked
+Marks
+Correct NumPy code without row loops
+30
+Correct regression, gradient descent and measuring
+25
+Feature impact analysis (standardised weights, drop-one test, bootstrap range, what-if) built and explained correctly
+20
+Checks, honest splitting and ridge
+15
+Written answers (including the fairness answer) and a clean notebook that can be re-run
+10
+Total
+100
+16. Further Learning and Note About the Data
+Data: the file is simulated by prepare_productivity_data.py (250 employees, 24 months, seed 7). The effect of every feature, the AI assistant roll-out from month 13, and the blank training cells are all choices made in the simulation. Say this wherever results are shown.
+A reveal for the end of the session (optional): because we wrote the simulation, we know the true effects. Show the table below to participants. It shows that regression found values very close to the truth, and that team size really had no effect. With real data, we never get to see the truth, which is why checks matter.
+Feature
+True effect in tasks (used in the simulation)
+True effect in score points (tasks / 160 x 100)
+What the model found (score points)
+experience_years
++3.0
++1.88
++1.87
+training_hours
++0.9
++0.56
++0.56
+task_complexity
+-7.0
+-4.38
+-4.34
+ai_assistant
++9.0
++5.62
++5.61
+rework_tickets
+-2.2
+-1.38
+-1.41
+absent_days
+-4.5
+-2.81
+-2.75
+team_size
++0.0
++0.00
+-0.03
+Using your own data: replace the simulated file with anonymised records from your organisation, with the same kind of columns (one row per employee-month, the features you can measure, and a productivity measure you trust). First get approval from HR and the people who look after data protection. Remove names and IDs. Expect all numbers in this guide to change.
+NumPy's official quickstart and user guide (numpy.org/doc).
+What to learn next: pandas for tables of data; handling categories such as team or role (one-hot encoding), where a good exercise is to add a department column to the simulation and see if it helps; logistic regression for questions like "will this person reach the monthly target?"; cross-validation; and pilots or A/B tests to find out whether a feature really causes a change.

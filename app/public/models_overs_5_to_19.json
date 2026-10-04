@@ -1,0 +1,1023 @@
+{
+  "summary": {
+    "total_innings": 3281,
+    "train_innings": 1826,
+    "test_innings": 1455,
+    "mean_final": 152.7,
+    "min_final": 26,
+    "max_final": 344
+  },
+  "models": {
+    "5": {
+      "over": 5,
+      "mean_runs": 35.5,
+      "mean_wkts": 1.3,
+      "naive": {
+        "rmse": 37.4,
+        "mae": 29.4,
+        "bias": 6.2,
+        "underest_pct": 57.3
+      },
+      "simple": {
+        "slope": 2.099,
+        "intercept": 78.0,
+        "train_rmse": 28.8,
+        "test_rmse": 31.5,
+        "test_mae": 24.8,
+        "test_r2": 0.503
+      },
+      "multiple": {
+        "intercept": 91.96,
+        "weight_runs": 1.904,
+        "weight_wkts": -5.4,
+        "train_rmse": 28.4,
+        "test_rmse": 31.5,
+        "test_mae": 24.7,
+        "test_r2": 0.506,
+        "train_adj_r2": 0.426
+      }
+    },
+    "6": {
+      "over": 6,
+      "mean_runs": 43.1,
+      "mean_wkts": 1.58,
+      "naive": {
+        "rmse": 33.7,
+        "mae": 26.5,
+        "bias": 4.8,
+        "underest_pct": 56.0
+      },
+      "simple": {
+        "slope": 1.928,
+        "intercept": 69.38,
+        "train_rmse": 27.4,
+        "test_rmse": 29.4,
+        "test_mae": 23.0,
+        "test_r2": 0.569
+      },
+      "multiple": {
+        "intercept": 85.43,
+        "weight_runs": 1.741,
+        "weight_wkts": -5.06,
+        "train_rmse": 26.9,
+        "test_rmse": 29.2,
+        "test_mae": 22.9,
+        "test_r2": 0.573,
+        "train_adj_r2": 0.484
+      }
+    },
+    "7": {
+      "over": 7,
+      "mean_runs": 49.3,
+      "mean_wkts": 1.83,
+      "naive": {
+        "rmse": 31.1,
+        "mae": 24.4,
+        "bias": 7.4,
+        "underest_pct": 59.5
+      },
+      "simple": {
+        "slope": 1.854,
+        "intercept": 60.96,
+        "train_rmse": 26.2,
+        "test_rmse": 27.9,
+        "test_mae": 21.9,
+        "test_r2": 0.61
+      },
+      "multiple": {
+        "intercept": 79.11,
+        "weight_runs": 1.67,
+        "weight_wkts": -4.95,
+        "train_rmse": 25.7,
+        "test_rmse": 27.7,
+        "test_mae": 21.7,
+        "test_r2": 0.616,
+        "train_adj_r2": 0.53
+      }
+    },
+    "8": {
+      "over": 8,
+      "mean_runs": 56.0,
+      "mean_wkts": 2.07,
+      "naive": {
+        "rmse": 29.2,
+        "mae": 22.9,
+        "bias": 8.3,
+        "underest_pct": 61.2
+      },
+      "simple": {
+        "slope": 1.771,
+        "intercept": 53.21,
+        "train_rmse": 24.7,
+        "test_rmse": 26.3,
+        "test_mae": 20.6,
+        "test_r2": 0.653
+      },
+      "multiple": {
+        "intercept": 72.07,
+        "weight_runs": 1.603,
+        "weight_wkts": -4.55,
+        "train_rmse": 24.2,
+        "test_rmse": 26.0,
+        "test_mae": 20.5,
+        "test_r2": 0.661,
+        "train_adj_r2": 0.584
+      }
+    },
+    "9": {
+      "over": 9,
+      "mean_runs": 62.9,
+      "mean_wkts": 2.32,
+      "naive": {
+        "rmse": 27.0,
+        "mae": 21.1,
+        "bias": 8.7,
+        "underest_pct": 62.8
+      },
+      "simple": {
+        "slope": 1.695,
+        "intercept": 45.88,
+        "train_rmse": 23.5,
+        "test_rmse": 24.6,
+        "test_mae": 19.3,
+        "test_r2": 0.699
+      },
+      "multiple": {
+        "intercept": 67.79,
+        "weight_runs": 1.519,
+        "weight_wkts": -4.67,
+        "train_rmse": 22.8,
+        "test_rmse": 24.2,
+        "test_mae": 19.1,
+        "test_r2": 0.707,
+        "train_adj_r2": 0.628
+      }
+    },
+    "10": {
+      "over": 10,
+      "mean_runs": 70.0,
+      "mean_wkts": 2.58,
+      "naive": {
+        "rmse": 24.8,
+        "mae": 19.5,
+        "bias": 8.9,
+        "underest_pct": 63.2
+      },
+      "simple": {
+        "slope": 1.619,
+        "intercept": 39.16,
+        "train_rmse": 22.1,
+        "test_rmse": 22.6,
+        "test_mae": 17.9,
+        "test_r2": 0.745
+      },
+      "multiple": {
+        "intercept": 62.38,
+        "weight_runs": 1.454,
+        "weight_wkts": -4.52,
+        "train_rmse": 21.5,
+        "test_rmse": 22.1,
+        "test_mae": 17.5,
+        "test_r2": 0.756,
+        "train_adj_r2": 0.672
+      }
+    },
+    "11": {
+      "over": 11,
+      "mean_runs": 77.3,
+      "mean_wkts": 2.86,
+      "naive": {
+        "rmse": 23.3,
+        "mae": 18.2,
+        "bias": 8.9,
+        "underest_pct": 65.5
+      },
+      "simple": {
+        "slope": 1.562,
+        "intercept": 31.77,
+        "train_rmse": 20.4,
+        "test_rmse": 21.2,
+        "test_mae": 16.8,
+        "test_r2": 0.774
+      },
+      "multiple": {
+        "intercept": 55.56,
+        "weight_runs": 1.408,
+        "weight_wkts": -4.17,
+        "train_rmse": 19.8,
+        "test_rmse": 20.8,
+        "test_mae": 16.4,
+        "test_r2": 0.784,
+        "train_adj_r2": 0.722
+      }
+    },
+    "12": {
+      "over": 12,
+      "mean_runs": 84.6,
+      "mean_wkts": 3.14,
+      "naive": {
+        "rmse": 21.4,
+        "mae": 16.5,
+        "bias": 8.7,
+        "underest_pct": 67.4
+      },
+      "simple": {
+        "slope": 1.505,
+        "intercept": 25.1,
+        "train_rmse": 18.9,
+        "test_rmse": 19.5,
+        "test_mae": 15.3,
+        "test_r2": 0.811
+      },
+      "multiple": {
+        "intercept": 50.03,
+        "weight_runs": 1.359,
+        "weight_wkts": -4.01,
+        "train_rmse": 18.2,
+        "test_rmse": 19.0,
+        "test_mae": 14.9,
+        "test_r2": 0.82,
+        "train_adj_r2": 0.765
+      }
+    },
+    "13": {
+      "over": 13,
+      "mean_runs": 92.3,
+      "mean_wkts": 3.45,
+      "naive": {
+        "rmse": 19.7,
+        "mae": 15.3,
+        "bias": 8.2,
+        "underest_pct": 67.5
+      },
+      "simple": {
+        "slope": 1.431,
+        "intercept": 20.38,
+        "train_rmse": 17.4,
+        "test_rmse": 18.0,
+        "test_mae": 14.2,
+        "test_r2": 0.839
+      },
+      "multiple": {
+        "intercept": 45.38,
+        "weight_runs": 1.297,
+        "weight_wkts": -3.67,
+        "train_rmse": 16.7,
+        "test_rmse": 17.6,
+        "test_mae": 13.9,
+        "test_r2": 0.845,
+        "train_adj_r2": 0.801
+      }
+    },
+    "14": {
+      "over": 14,
+      "mean_runs": 99.9,
+      "mean_wkts": 3.77,
+      "naive": {
+        "rmse": 18.0,
+        "mae": 14.0,
+        "bias": 7.8,
+        "underest_pct": 68.2
+      },
+      "simple": {
+        "slope": 1.372,
+        "intercept": 15.37,
+        "train_rmse": 16.0,
+        "test_rmse": 16.3,
+        "test_mae": 13.0,
+        "test_r2": 0.867
+      },
+      "multiple": {
+        "intercept": 39.32,
+        "weight_runs": 1.256,
+        "weight_wkts": -3.27,
+        "train_rmse": 15.3,
+        "test_rmse": 15.8,
+        "test_mae": 12.6,
+        "test_r2": 0.875,
+        "train_adj_r2": 0.832
+      }
+    },
+    "15": {
+      "over": 15,
+      "mean_runs": 107.7,
+      "mean_wkts": 4.12,
+      "naive": {
+        "rmse": 15.9,
+        "mae": 12.4,
+        "bias": 6.9,
+        "underest_pct": 67.0
+      },
+      "simple": {
+        "slope": 1.313,
+        "intercept": 11.03,
+        "train_rmse": 14.3,
+        "test_rmse": 14.4,
+        "test_mae": 11.6,
+        "test_r2": 0.896
+      },
+      "multiple": {
+        "intercept": 35.49,
+        "weight_runs": 1.202,
+        "weight_wkts": -3.03,
+        "train_rmse": 13.7,
+        "test_rmse": 13.9,
+        "test_mae": 11.3,
+        "test_r2": 0.903,
+        "train_adj_r2": 0.867
+      }
+    },
+    "16": {
+      "over": 16,
+      "mean_runs": 116.1,
+      "mean_wkts": 4.52,
+      "naive": {
+        "rmse": 13.9,
+        "mae": 10.8,
+        "bias": 6.0,
+        "underest_pct": 68.0
+      },
+      "simple": {
+        "slope": 1.256,
+        "intercept": 6.66,
+        "train_rmse": 12.4,
+        "test_rmse": 12.6,
+        "test_mae": 9.9,
+        "test_r2": 0.921
+      },
+      "multiple": {
+        "intercept": 29.02,
+        "weight_runs": 1.162,
+        "weight_wkts": -2.54,
+        "train_rmse": 11.9,
+        "test_rmse": 12.0,
+        "test_mae": 9.5,
+        "test_r2": 0.928,
+        "train_adj_r2": 0.9
+      }
+    },
+    "17": {
+      "over": 17,
+      "mean_runs": 124.8,
+      "mean_wkts": 4.98,
+      "naive": {
+        "rmse": 11.4,
+        "mae": 8.9,
+        "bias": 4.4,
+        "underest_pct": 66.3
+      },
+      "simple": {
+        "slope": 1.19,
+        "intercept": 3.88,
+        "train_rmse": 10.4,
+        "test_rmse": 10.5,
+        "test_mae": 8.4,
+        "test_r2": 0.945
+      },
+      "multiple": {
+        "intercept": 25.54,
+        "weight_runs": 1.106,
+        "weight_wkts": -2.25,
+        "train_rmse": 9.9,
+        "test_rmse": 10.0,
+        "test_mae": 8.0,
+        "test_r2": 0.95,
+        "train_adj_r2": 0.931
+      }
+    },
+    "18": {
+      "over": 18,
+      "mean_runs": 133.7,
+      "mean_wkts": 5.48,
+      "naive": {
+        "rmse": 8.8,
+        "mae": 6.8,
+        "bias": 2.9,
+        "underest_pct": 62.1
+      },
+      "simple": {
+        "slope": 1.134,
+        "intercept": 0.82,
+        "train_rmse": 8.1,
+        "test_rmse": 8.3,
+        "test_mae": 6.6,
+        "test_r2": 0.966
+      },
+      "multiple": {
+        "intercept": 17.44,
+        "weight_runs": 1.075,
+        "weight_wkts": -1.58,
+        "train_rmse": 7.7,
+        "test_rmse": 7.9,
+        "test_mae": 6.3,
+        "test_r2": 0.969,
+        "train_adj_r2": 0.958
+      }
+    },
+    "19": {
+      "over": 19,
+      "mean_runs": 142.8,
+      "mean_wkts": 6.08,
+      "naive": {
+        "rmse": 5.6,
+        "mae": 4.3,
+        "bias": 1.5,
+        "underest_pct": 55.5
+      },
+      "simple": {
+        "slope": 1.071,
+        "intercept": -0.5,
+        "train_rmse": 5.3,
+        "test_rmse": 5.4,
+        "test_mae": 4.3,
+        "test_r2": 0.986
+      },
+      "multiple": {
+        "intercept": 10.3,
+        "weight_runs": 1.036,
+        "weight_wkts": -0.96,
+        "train_rmse": 5.1,
+        "test_rmse": 5.2,
+        "test_mae": 4.1,
+        "test_r2": 0.987,
+        "train_adj_r2": 0.982
+      }
+    }
+  },
+  "replay_matches": [
+    {
+      "match_id": 1431123,
+      "year": 2024,
+      "final": 26,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 13,
+          "wkts": 2
+        },
+        {
+          "over": 6,
+          "runs": 16,
+          "wkts": 3
+        },
+        {
+          "over": 7,
+          "runs": 18,
+          "wkts": 4
+        },
+        {
+          "over": 8,
+          "runs": 18,
+          "wkts": 5
+        },
+        {
+          "over": 9,
+          "runs": 19,
+          "wkts": 5
+        },
+        {
+          "over": 10,
+          "runs": 19,
+          "wkts": 6
+        },
+        {
+          "over": 11,
+          "runs": 19,
+          "wkts": 7
+        },
+        {
+          "over": 12,
+          "runs": 20,
+          "wkts": 7
+        },
+        {
+          "over": 13,
+          "runs": 21,
+          "wkts": 7
+        },
+        {
+          "over": 14,
+          "runs": 21,
+          "wkts": 7
+        },
+        {
+          "over": 15,
+          "runs": 26,
+          "wkts": 8
+        },
+        {
+          "over": 16,
+          "runs": 26,
+          "wkts": 10
+        },
+        {
+          "over": 17,
+          "runs": 26,
+          "wkts": 10
+        },
+        {
+          "over": 18,
+          "runs": 26,
+          "wkts": 10
+        },
+        {
+          "over": 19,
+          "runs": 26,
+          "wkts": 10
+        }
+      ]
+    },
+    {
+      "match_id": 1546382,
+      "year": 2026,
+      "final": 106,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 19,
+          "wkts": 1
+        },
+        {
+          "over": 6,
+          "runs": 27,
+          "wkts": 1
+        },
+        {
+          "over": 7,
+          "runs": 31,
+          "wkts": 1
+        },
+        {
+          "over": 8,
+          "runs": 32,
+          "wkts": 1
+        },
+        {
+          "over": 9,
+          "runs": 37,
+          "wkts": 1
+        },
+        {
+          "over": 10,
+          "runs": 41,
+          "wkts": 3
+        },
+        {
+          "over": 11,
+          "runs": 47,
+          "wkts": 3
+        },
+        {
+          "over": 12,
+          "runs": 50,
+          "wkts": 3
+        },
+        {
+          "over": 13,
+          "runs": 62,
+          "wkts": 4
+        },
+        {
+          "over": 14,
+          "runs": 70,
+          "wkts": 4
+        },
+        {
+          "over": 15,
+          "runs": 76,
+          "wkts": 4
+        },
+        {
+          "over": 16,
+          "runs": 80,
+          "wkts": 4
+        },
+        {
+          "over": 17,
+          "runs": 85,
+          "wkts": 5
+        },
+        {
+          "over": 18,
+          "runs": 98,
+          "wkts": 5
+        },
+        {
+          "over": 19,
+          "runs": 103,
+          "wkts": 6
+        }
+      ]
+    },
+    {
+      "match_id": 1513096,
+      "year": 2025,
+      "final": 129,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 26,
+          "wkts": 2
+        },
+        {
+          "over": 6,
+          "runs": 29,
+          "wkts": 3
+        },
+        {
+          "over": 7,
+          "runs": 37,
+          "wkts": 3
+        },
+        {
+          "over": 8,
+          "runs": 42,
+          "wkts": 3
+        },
+        {
+          "over": 9,
+          "runs": 42,
+          "wkts": 3
+        },
+        {
+          "over": 10,
+          "runs": 46,
+          "wkts": 3
+        },
+        {
+          "over": 11,
+          "runs": 51,
+          "wkts": 3
+        },
+        {
+          "over": 12,
+          "runs": 59,
+          "wkts": 3
+        },
+        {
+          "over": 13,
+          "runs": 75,
+          "wkts": 3
+        },
+        {
+          "over": 14,
+          "runs": 85,
+          "wkts": 3
+        },
+        {
+          "over": 15,
+          "runs": 90,
+          "wkts": 4
+        },
+        {
+          "over": 16,
+          "runs": 95,
+          "wkts": 5
+        },
+        {
+          "over": 17,
+          "runs": 101,
+          "wkts": 5
+        },
+        {
+          "over": 18,
+          "runs": 107,
+          "wkts": 5
+        },
+        {
+          "over": 19,
+          "runs": 123,
+          "wkts": 5
+        }
+      ]
+    },
+    {
+      "match_id": 1447480,
+      "year": 2024,
+      "final": 153,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 31,
+          "wkts": 4
+        },
+        {
+          "over": 6,
+          "runs": 38,
+          "wkts": 4
+        },
+        {
+          "over": 7,
+          "runs": 44,
+          "wkts": 4
+        },
+        {
+          "over": 8,
+          "runs": 53,
+          "wkts": 4
+        },
+        {
+          "over": 9,
+          "runs": 57,
+          "wkts": 5
+        },
+        {
+          "over": 10,
+          "runs": 63,
+          "wkts": 5
+        },
+        {
+          "over": 11,
+          "runs": 67,
+          "wkts": 5
+        },
+        {
+          "over": 12,
+          "runs": 71,
+          "wkts": 5
+        },
+        {
+          "over": 13,
+          "runs": 73,
+          "wkts": 5
+        },
+        {
+          "over": 14,
+          "runs": 88,
+          "wkts": 5
+        },
+        {
+          "over": 15,
+          "runs": 94,
+          "wkts": 5
+        },
+        {
+          "over": 16,
+          "runs": 113,
+          "wkts": 5
+        },
+        {
+          "over": 17,
+          "runs": 122,
+          "wkts": 5
+        },
+        {
+          "over": 18,
+          "runs": 132,
+          "wkts": 5
+        },
+        {
+          "over": 19,
+          "runs": 142,
+          "wkts": 6
+        }
+      ]
+    },
+    {
+      "match_id": 1481311,
+      "year": 2025,
+      "final": 175,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 25,
+          "wkts": 0
+        },
+        {
+          "over": 6,
+          "runs": 31,
+          "wkts": 0
+        },
+        {
+          "over": 7,
+          "runs": 39,
+          "wkts": 0
+        },
+        {
+          "over": 8,
+          "runs": 47,
+          "wkts": 0
+        },
+        {
+          "over": 9,
+          "runs": 60,
+          "wkts": 0
+        },
+        {
+          "over": 10,
+          "runs": 71,
+          "wkts": 0
+        },
+        {
+          "over": 11,
+          "runs": 79,
+          "wkts": 0
+        },
+        {
+          "over": 12,
+          "runs": 86,
+          "wkts": 1
+        },
+        {
+          "over": 13,
+          "runs": 89,
+          "wkts": 1
+        },
+        {
+          "over": 14,
+          "runs": 99,
+          "wkts": 1
+        },
+        {
+          "over": 15,
+          "runs": 107,
+          "wkts": 1
+        },
+        {
+          "over": 16,
+          "runs": 113,
+          "wkts": 2
+        },
+        {
+          "over": 17,
+          "runs": 132,
+          "wkts": 2
+        },
+        {
+          "over": 18,
+          "runs": 153,
+          "wkts": 2
+        },
+        {
+          "over": 19,
+          "runs": 163,
+          "wkts": 2
+        }
+      ]
+    },
+    {
+      "match_id": 1506440,
+      "year": 2025,
+      "final": 198,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 42,
+          "wkts": 2
+        },
+        {
+          "over": 6,
+          "runs": 55,
+          "wkts": 2
+        },
+        {
+          "over": 7,
+          "runs": 56,
+          "wkts": 2
+        },
+        {
+          "over": 8,
+          "runs": 64,
+          "wkts": 2
+        },
+        {
+          "over": 9,
+          "runs": 75,
+          "wkts": 3
+        },
+        {
+          "over": 10,
+          "runs": 88,
+          "wkts": 3
+        },
+        {
+          "over": 11,
+          "runs": 92,
+          "wkts": 3
+        },
+        {
+          "over": 12,
+          "runs": 103,
+          "wkts": 3
+        },
+        {
+          "over": 13,
+          "runs": 114,
+          "wkts": 3
+        },
+        {
+          "over": 14,
+          "runs": 118,
+          "wkts": 4
+        },
+        {
+          "over": 15,
+          "runs": 125,
+          "wkts": 5
+        },
+        {
+          "over": 16,
+          "runs": 142,
+          "wkts": 5
+        },
+        {
+          "over": 17,
+          "runs": 146,
+          "wkts": 5
+        },
+        {
+          "over": 18,
+          "runs": 156,
+          "wkts": 6
+        },
+        {
+          "over": 19,
+          "runs": 174,
+          "wkts": 6
+        }
+      ]
+    },
+    {
+      "match_id": 1453932,
+      "year": 2024,
+      "final": 344,
+      "overs": [
+        {
+          "over": 5,
+          "runs": 92,
+          "wkts": 0
+        },
+        {
+          "over": 6,
+          "runs": 103,
+          "wkts": 1
+        },
+        {
+          "over": 7,
+          "runs": 115,
+          "wkts": 2
+        },
+        {
+          "over": 8,
+          "runs": 125,
+          "wkts": 2
+        },
+        {
+          "over": 9,
+          "runs": 141,
+          "wkts": 2
+        },
+        {
+          "over": 10,
+          "runs": 150,
+          "wkts": 3
+        },
+        {
+          "over": 11,
+          "runs": 162,
+          "wkts": 3
+        },
+        {
+          "over": 12,
+          "runs": 185,
+          "wkts": 3
+        },
+        {
+          "over": 13,
+          "runs": 201,
+          "wkts": 3
+        },
+        {
+          "over": 14,
+          "runs": 210,
+          "wkts": 4
+        },
+        {
+          "over": 15,
+          "runs": 228,
+          "wkts": 4
+        },
+        {
+          "over": 16,
+          "runs": 242,
+          "wkts": 4
+        },
+        {
+          "over": 17,
+          "runs": 277,
+          "wkts": 4
+        },
+        {
+          "over": 18,
+          "runs": 301,
+          "wkts": 4
+        },
+        {
+          "over": 19,
+          "runs": 319,
+          "wkts": 4
+        }
+      ]
+    }
+  ]
+}
